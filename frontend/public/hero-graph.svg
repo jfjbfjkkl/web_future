@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" role="img" aria-label="Graphique de croissance néon" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0b0f16"/>
+      <stop offset="50%" stop-color="#0c111c"/>
+      <stop offset="100%" stop-color="#0b0f16"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#63e0ff"/>
+      <stop offset="100%" stop-color="#1ea8da"/>
+    </linearGradient>
+    <filter id="glowBlue" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glowWhite" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+  <g filter="url(#glowBlue)">
+    <rect x="270" y="570" width="90" height="230" rx="8" fill="url(#bar)" stroke="#8df0ff" stroke-width="6"/>
+    <rect x="380" y="520" width="90" height="280" rx="8" fill="url(#bar)" stroke="#8df0ff" stroke-width="6"/>
+    <rect x="490" y="440" width="90" height="360" rx="8" fill="url(#bar)" stroke="#8df0ff" stroke-width="6"/>
+    <rect x="600" y="390" width="90" height="410" rx="8" fill="url(#bar)" stroke="#8df0ff" stroke-width="6"/>
+  </g>
+  <g filter="url(#glowWhite)">
+    <path d="M240 660 L330 560 L420 620 L510 480 L600 530 L690 420 L780 500 L870 350" fill="none" stroke="#f8fbff" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M870 350 L820 360 L910 320 L880 410" fill="#f8fbff"/>
+  </g>
+</svg>
