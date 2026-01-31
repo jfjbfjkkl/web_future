@@ -1,6 +1,9 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 async function csrf() {
+  if (!API_BASE) {
+    throw new Error("NEXT_PUBLIC_API_URL is not set");
+  }
   await fetch(API_BASE.replace(/\/api$/, "/sanctum/csrf-cookie"), {
     credentials: "include",
   });
@@ -13,6 +16,9 @@ function getXsrfToken() {
 }
 
 export async function apiPost<T = unknown>(path: string, body: Record<string, unknown>) {
+  if (!API_BASE) {
+    throw new Error("NEXT_PUBLIC_API_URL is not set");
+  }
   await csrf();
   const token = getXsrfToken();
   const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -54,6 +60,9 @@ export async function apiPost<T = unknown>(path: string, body: Record<string, un
 }
 
 export async function apiGet<T = unknown>(path: string) {
+  if (!API_BASE) {
+    throw new Error("NEXT_PUBLIC_API_URL is not set");
+  }
   const res = await fetch(`${API_BASE}${path}`, {
     method: "GET",
     credentials: "include",

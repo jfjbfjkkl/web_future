@@ -1,11 +1,11 @@
-# Déploiement sur Render (Laravel + Next.js)
+# Déploiement sur Render (Laravel Docker + Next.js)
 
 Ce dépôt contient deux services :
 - backend (Laravel)
 - frontend (Next.js)
 
 Le fichier render.yaml est prêt pour créer :
-- 1 service web PHP (backend)
+- 1 service web Docker (backend)
 - 1 service web Node (frontend)
 - 1 base PostgreSQL (Render)
 
@@ -49,3 +49,7 @@ Recommandées :
 
 - Le backend utilise Sanctum + cookies. Les domaines doivent être compatibles pour que les cookies soient acceptés.
 - Si vous utilisez un domaine personnalisé, remplacez .onrender.com par votre domaine.
+
+## Où trouver les URLs exactes
+
+Dans Render, ouvre chaque service (backend puis frontend) et copie le champ "URL" (ex: https://mon-service.onrender.com).
