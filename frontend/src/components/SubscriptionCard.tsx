@@ -46,12 +46,13 @@ export function SubscriptionCard({
   const addItem = useCartStore((s) => s.addItem);
   const imgRef = useRef<HTMLDivElement | null>(null);
   const [pulse, setPulse] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
   const colors = accentColors[subscription.accentColor];
 
   return (
     <motion.article
-      whileHover={{ scale: 1.03, y: -2 }}
-      transition={{ duration: 0.22, ease: "easeOut" }}
+      whileHover={{ scale: 1.02, y: -1 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
       className="group relative h-full overflow-hidden rounded-2xl bg-[conic-gradient(from_120deg_at_50%_50%,rgba(24,31,58,0.38),rgba(90,200,255,0.28),rgba(255,155,63,0.32),rgba(255,95,66,0.34),rgba(24,31,58,0.38))] p-[1px] shadow-[0_12px_28px_rgba(0,0,0,0.24)] animate-[borderShift_12s_linear_infinite]"
       style={{
         boxShadow: `0 12px 28px rgba(0,0,0,0.24), 0 0 0 1px ${colors.border}`,
@@ -84,18 +85,32 @@ export function SubscriptionCard({
         </div>
 
         <div className="relative mt-3 flex w-full flex-1 items-center justify-center">
-          <div
+          <motion.div
             ref={imgRef}
-            className="relative h-40 w-full max-w-[240px] overflow-hidden rounded-xl bg-gradient-to-b from-white/8 to-black/70 ring-1 ring-white/6"
+            className="relative h-40 w-full max-w-[240px] overflow-hidden rounded-xl bg-gradient-to-b from-white/8 to-black/70 ring-1 ring-white/6 shadow-lg"
+            onHoverStart={() => setIsHovering(true)}
+            onHoverEnd={() => setIsHovering(false)}
+            animate={isHovering ? {
+              scale: 1.06,
+              rotateZ: 2,
+            } : {
+              scale: 1,
+              rotateZ: 0,
+            }}
+            transition={{
+              duration: 0.2,
+              ease: "easeOut",
+            }}
           >
             <Image
               src={image}
               alt={subscription.title}
               fill
-              className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+              className="object-cover"
               sizes="240px"
+              loading="lazy"
             />
-          </div>
+          </motion.div>
         </div>
 
         <div className="relative mt-4 flex w-full items-center justify-between text-white">

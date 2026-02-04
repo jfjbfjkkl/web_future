@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nexi Shop | Diamants Free Fire instantanés",
-  description: "Nexi Shop – Diamants & jeux en toute confiance. Livraison instantanée et paiement sécurisé.",
+  title: "Nexy Shop | Diamants Free Fire instantanés",
+  description: "Nexy Shop – Diamants & jeux en toute confiance. Livraison instantanée et paiement sécurisé.",
   icons: {
     icon: "/favicon.ico",
   },

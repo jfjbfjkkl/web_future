@@ -31,8 +31,8 @@ export function AuthModal({ open, onClose, onAuthenticated }: Props) {
       }
       onAuthenticated();
       onClose();
-    } catch (e: any) {
-      setLocalError(e?.message ?? "Erreur");
+    } catch (e: unknown) {
+      setLocalError(e instanceof Error ? e.message : "Erreur");
     }
   };
 

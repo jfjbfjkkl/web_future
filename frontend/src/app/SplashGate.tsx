@@ -106,7 +106,7 @@ export default function SplashGate({ children }: { children: React.ReactNode }) 
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
               >
-                Nexi Shop
+                Nexy Shop
               </motion.div>
 
               <div className="relative overflow-hidden">
@@ -130,7 +130,7 @@ export default function SplashGate({ children }: { children: React.ReactNode }) 
                     },
                   }}
                 >
-                  {"Welcome to Nexi Shop".split("").map((char, idx) => (
+                  {"Welcome to Nexy Shop".split("").map((char, idx) => (
                     <motion.span
                       key={idx}
                       variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}

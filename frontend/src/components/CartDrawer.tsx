@@ -28,9 +28,9 @@ export function CartDrawer({ open, onClose }: Props) {
       goToLogin();
       return;
     }
-    // TODO: branch to real payment flow
-    // For now, just close drawer after confirming user is logged.
-    onClose();
+    // Redirection vers la page de paiement
+    const checkoutUrl = `${window.location.origin}/checkout?redirect=${encodeURIComponent(pathname)}`;
+    window.location.href = checkoutUrl;
   };
 
   return (

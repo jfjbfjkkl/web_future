@@ -32,10 +32,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       } else {
         throw new Error(res.message || "Erreur de connexion");
       }
-    } catch (e: any) {
-      const errorMsg = e.message ?? "Erreur de connexion";
+    } catch (e: unknown) {
+      const errorMsg = e instanceof Error ? e.message : "Erreur de connexion";
       set({ error: errorMsg });
-      console.error("Erreur de connexion:", errorMsg);
       throw new Error(errorMsg);
     } finally {
       set({ loading: false });
@@ -44,7 +43,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   async register(name, email, password, password_confirmation) {
     set({ loading: true, error: null });
     try {
-      console.log("Envoi des données d'inscription:", { name, email, password: "***" });
       const res = await apiPost<{ success: boolean; user: User; message?: string }>("/auth/register", {
         name,
         email,
@@ -53,14 +51,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
       if (res.success && res.user) {
         set({ user: res.user, error: null });
-        console.log("✅ Inscription réussie:", res.message);
       } else {
         throw new Error(res.message || "Erreur d'inscription");
       }
-    } catch (e: any) {
-      const errorMsg = e.message ?? "Erreur d'inscription";
+    } catch (e: unknown) {
+      const errorMsg = e instanceof Error ? e.message : "Erreur d'inscription";
       set({ error: errorMsg });
-      console.error("❌ Erreur d'inscription:", errorMsg);
       throw new Error(errorMsg);
     } finally {
       set({ loading: false });
@@ -86,7 +82,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
     } catch (e) {
       set({ user: null });
-      console.log("Utilisateur non authentifié");
     } finally {
       set({ loading: false });
     }

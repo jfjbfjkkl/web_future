@@ -19,14 +19,15 @@ export function ProductCard({ pack, image, onAdd }: { pack: Pack; image: StaticI
   const addItem = useCartStore((s) => s.addItem);
   const imgRef = useRef<HTMLDivElement | null>(null);
   const [pulse, setPulse] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
 
   return (
     <motion.article
-      whileHover={{ y: -8, transition: { duration: 0.3 } }}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
       className="group relative h-full"
     >
       {/* Bordure lumineuse gamer avec couleurs officielles */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#ff9b3f]/20 via-[#5ac8ff]/10 to-[#ff5f42]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl -z-10" aria-hidden />
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#ff9b3f]/10 to-[#5ac8ff]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 blur-md -z-10" aria-hidden />
       
       <div className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-br from-[#0a0f1c] via-[#1a1f2e] to-[#0f1319] p-5 shadow-[0_20px_40px_rgba(0,0,0,0.6),0_0_30px_rgba(90,200,255,0.08)] border border-[#5ac8ff]/20 group-hover:border-[#ff9b3f]/40 transition-all duration-300">
         
@@ -51,20 +52,34 @@ export function ProductCard({ pack, image, onAdd }: { pack: Pack; image: StaticI
         </div>
 
         {/* Image diamant - centrée et propre */}
-        <div className="relative flex-1 flex items-center justify-center mb-6">
-          <div
+        <div className="relative flex-1 flex items-center justify-center mb-6 perspective">
+          <motion.div
             ref={imgRef}
-            className="relative h-32 w-32 rounded-xl overflow-hidden"
+            className="relative h-32 w-32 rounded-xl overflow-hidden shadow-lg"
+            onHoverStart={() => setIsHovering(true)}
+            onHoverEnd={() => setIsHovering(false)}
+            animate={isHovering ? {
+              scale: 1.08,
+              rotateZ: 2,
+            } : {
+              scale: 1,
+              rotateZ: 0,
+            }}
+            transition={{
+              duration: 0.2,
+              ease: "easeOut",
+            }}
           >
             <Image
               src={image}
               alt={pack.title}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-110 filter drop-shadow-[0_0_8px_rgba(90,200,255,0.25)]"
+              className="object-cover"
               sizes="128px"
               priority={pack.id === "110"}
+              loading={pack.id === "110" ? "eager" : "lazy"}
             />
-          </div>
+          </motion.div>
         </div>
 
         {/* Prix - bien visible et plus grand avec couleurs officielles */}
@@ -86,7 +101,7 @@ export function ProductCard({ pack, image, onAdd }: { pack: Pack; image: StaticI
               onAdd({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
             }
           }}
-          className="relative w-full overflow-hidden rounded-lg bg-gradient-to-r from-[#ff9b3f] to-[#ff5f42] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,155,63,0.5),0_10px_30px_rgba(255,155,63,0.3)] group/btn border border-[#ff9b3f]/60 hover:border-[#ff9b3f]/80"
+          className="relative w-full overflow-hidden rounded-lg bg-gradient-to-r from-[#ff9b3f] to-[#ff5f42] px-4 py-3 text-sm font-bold text-white transition-all duration-200 hover:shadow-[0_0_12px_rgba(255,155,63,0.4)] group/btn border border-[#ff9b3f]/60 hover:border-[#ff9b3f]/80"
         >
           {/* Effet lumière au passage */}
           <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover/btn:opacity-20 group-hover/btn:animate-pulse" aria-hidden />
