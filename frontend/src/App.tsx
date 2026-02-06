@@ -1,6 +1,68 @@
-import { FormEvent, useEffect, useRef, useState } from "react";
-import type { MouseEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { AnchorHTMLAttributes, FormEvent, MouseEvent } from "react";
 import "./App.css";
+
+function usePathname() {
+  const [pathname, setPathname] = useState(() => window.location.pathname || "/");
+
+  useEffect(() => {
+    const onPopState = () => setPathname(window.location.pathname || "/");
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  return pathname;
+}
+
+function useRouter() {
+  return {
+    push: (href: string) => {
+      window.history.pushState({}, "", href);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    },
+  };
+}
+
+function Link(
+  props: { href: string } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href">
+) {
+  const { href, onClick, ...rest } = props;
+
+  return (
+    <a
+      href={href}
+      {...rest}
+      onClick={(event) => {
+        onClick?.(event);
+        if (event.defaultPrevented) return;
+
+        if (
+          event.button !== 0 ||
+          event.metaKey ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.shiftKey
+        ) {
+          return;
+        }
+
+        if (
+          href.startsWith("#") ||
+          href.startsWith("http://") ||
+          href.startsWith("https://") ||
+          href.startsWith("mailto:") ||
+          href.startsWith("tel:")
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+        window.history.pushState({}, "", href);
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }}
+    />
+  );
+}
 
 type GameCard = {
   id: string;
@@ -37,8 +99,31 @@ type FreeFireSub = {
   period: "week" | "month";
 };
 
+type StoredUser = {
+  name: string;
+  email: string;
+  password: string;
+};
+
+type PurchaseEntry = {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  total: number;
+  date: string;
+};
+
+type Page = "home" | "free-fire" | "login" | "account";
+
 const formatPrice = (value: number) =>
   `${value.toLocaleString("fr-FR")} FCFA`;
+
+const formatDateTime = (isoDate: string) =>
+  new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(isoDate));
 
 const freeFirePacks: FreeFirePack[] = [
   { id: "ff-110", title: "110 Diamants", price: 800 },
@@ -65,69 +150,188 @@ const freeFireSubs: FreeFireSub[] = [
   },
 ];
 
-const INTRO_ENABLED = true;
+const USERS_STORAGE_KEY = "nexy_users";
+const SESSION_STORAGE_KEY = "nexy_session";
+const CART_STORAGE_KEY = "nexy_cart";
+const purchasesKeyFor = (email: string) => `nexy_purchases_${email}`;
+
+const safeParseJSON = <T,>(value: string | null, fallback: T): T => {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+};
+
+const readStoredUsers = (): StoredUser[] => {
+  if (typeof window === "undefined") return [];
+  return safeParseJSON<StoredUser[]>(localStorage.getItem(USERS_STORAGE_KEY), []);
+};
+
+const getInitialAuthState = () => {
+  if (typeof window === "undefined") {
+    return { storedUsers: [] as StoredUser[], sessionUser: null as StoredUser | null };
+  }
+  const storedUsers = readStoredUsers();
+  const sessionEmail = localStorage.getItem(SESSION_STORAGE_KEY);
+  const sessionUser = sessionEmail
+    ? storedUsers.find((user) => user.email === sessionEmail) ?? null
+    : null;
+  return { storedUsers, sessionUser };
+};
+
+const readPurchases = (email: string): PurchaseEntry[] => {
+  if (typeof window === "undefined") return [];
+  return safeParseJSON<PurchaseEntry[]>(localStorage.getItem(purchasesKeyFor(email)), []);
+};
+
+const storePurchases = (email: string, entries: PurchaseEntry[]) => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(purchasesKeyFor(email), JSON.stringify(entries));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const readStoredCart = (): CartItem[] => {
+  if (typeof window === "undefined") return [];
+  return safeParseJSON<CartItem[]>(localStorage.getItem(CART_STORAGE_KEY), []);
+};
+
+const storeCart = (items: CartItem[]) => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const ROUTE_MAP: Record<Page, string> = {
+  home: "/",
+  "free-fire": "/free-fire",
+  login: "/login",
+  account: "/mon-compte",
+};
+
+const INTRO_ENABLED = false;
+const INTRO_SESSION_KEY = "nexy_intro_seen";
+const INTRO_TITLE = "NEXY SHOP";
 
 function App() {
-  const [showIntro, setShowIntro] = useState(INTRO_ENABLED);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const page: Page =
+    pathname === "/free-fire"
+      ? "free-fire"
+      : pathname === "/login"
+      ? "login"
+      : pathname === "/mon-compte"
+      ? "account"
+      : "home";
+
+  const initialAuthStateRef = useRef(getInitialAuthState());
+  const [users, setUsers] = useState<StoredUser[]>(initialAuthStateRef.current.storedUsers);
+  const [authUser, setAuthUser] = useState<StoredUser | null>(initialAuthStateRef.current.sessionUser);
+  const [purchaseHistory, setPurchaseHistory] = useState<PurchaseEntry[]>(
+    initialAuthStateRef.current.sessionUser
+      ? readPurchases(initialAuthStateRef.current.sessionUser.email)
+      : []
+  );
+
+  const initialShouldShowIntro = (() => {
+    if (!INTRO_ENABLED) return false;
+    try {
+      return sessionStorage.getItem(INTRO_SESSION_KEY) !== "1";
+    } catch {
+      return true;
+    }
+  })();
+
+  const [showIntro, setShowIntro] = useState(initialShouldShowIntro);
   const [introLeaving, setIntroLeaving] = useState(false);
-  const [introDone, setIntroDone] = useState(!INTRO_ENABLED);
-  const [page, setPage] = useState<"home" | "free-fire" | "login">(() => {
-    if (typeof window === "undefined") return "home";
-    if (window.location.pathname === "/free-fire") return "free-fire";
-    if (window.location.pathname === "/login") return "login";
-    return "home";
-  });
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [introDone, setIntroDone] = useState(!initialShouldShowIntro);
+
+  const [cart, setCart] = useState<CartItem[]>(() => readStoredCart());
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartBump, setCartBump] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loginIdentifier, setLoginIdentifier] = useState("");
+  const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  const [loginError, setLoginError] = useState<string | null>(null);
+  const [registerName, setRegisterName] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authError, setAuthError] = useState<string | null>(null);
   const cartButtonRef = useRef<HTMLButtonElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const handlePop = () => {
-      if (window.location.pathname === "/free-fire") {
-        setPage("free-fire");
-        return;
-      }
-      if (window.location.pathname === "/login") {
-        setPage("login");
-        return;
-      }
-      setPage("home");
-    };
-    window.addEventListener("popstate", handlePop);
-    return () => window.removeEventListener("popstate", handlePop);
-  }, []);
+  const isAuthenticated = Boolean(authUser);
 
   useEffect(() => {
     if (!INTRO_ENABLED) return;
     if (!showIntro) return;
 
-    document.body.style.overflow = "hidden";
-    const leaveTimer = window.setTimeout(() => setIntroLeaving(true), 2000);
+    const isMobile = window.matchMedia?.("(max-width: 600px), (hover: none)")?.matches ?? false;
+    const totalDurationMs = isMobile ? 1800 : 2400;
+    const exitMs = 400;
+    const leaveAtMs = Math.max(0, totalDurationMs - exitMs);
+
+    const leaveTimer = window.setTimeout(() => setIntroLeaving(true), leaveAtMs);
     const doneTimer = window.setTimeout(() => {
       setShowIntro(false);
       setIntroLeaving(false);
       setIntroDone(true);
-      document.body.style.overflow = "";
-    }, 2500);
+      try {
+        sessionStorage.setItem(INTRO_SESSION_KEY, "1");
+      } catch {
+        // ignore
+      }
+    }, totalDurationMs);
 
     return () => {
       window.clearTimeout(leaveTimer);
       window.clearTimeout(doneTimer);
-      document.body.style.overflow = "";
     };
   }, [showIntro]);
 
-  const navigate = (next: "home" | "free-fire" | "login") => {
-    const path = next === "home" ? "/" : `/${next}`;
-    window.history.pushState({}, "", path);
-    setPage(next);
+  useEffect(() => {
+    if (!authUser) {
+      setPurchaseHistory([]);
+      return;
+    }
+    setPurchaseHistory(readPurchases(authUser.email));
+  }, [authUser]);
+
+  useEffect(() => {
+    storeCart(cart);
+  }, [cart]);
+
+  useEffect(() => {
+    if (pathname === ROUTE_MAP.account && !authUser) {
+      setAuthModeWithReset("login");
+      router.push(ROUTE_MAP.login);
+      return;
+    }
+    if (pathname === ROUTE_MAP.login && authUser) {
+      router.push(ROUTE_MAP.account);
+    }
+  }, [pathname, authUser, router]);
+
+  const navigate = (next: Page) => {
     setIsMenuOpen(false);
+    router.push(ROUTE_MAP[next]);
+  };
+
+  const setAuthModeWithReset = (mode: "login" | "register") => {
+    setAuthMode(mode);
+    setAuthError(null);
+  };
+
+  const goToAuthPage = (mode: "login" | "register" = "login") => {
+    setAuthModeWithReset(mode);
+    navigate("login");
   };
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -135,6 +339,7 @@ function App() {
     (total, item) => total + item.price * item.quantity,
     0
   );
+  const accountInitial = authUser?.name?.trim()?.charAt(0).toUpperCase() ?? "N";
 
   const triggerCartPulse = () => {
     setCartBump(true);
@@ -156,6 +361,11 @@ function App() {
   };
 
   const animateToCart = (sourceImage: HTMLImageElement | null) => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+      triggerCartPulse();
+      return;
+    }
+
     const cartEl = cartButtonRef.current;
     if (!cartEl || !sourceImage) {
       triggerCartPulse();
@@ -214,28 +424,141 @@ function App() {
     setCart((prev) => prev.filter((entry) => entry.id !== id));
   };
 
+  const finishAuth = (user: StoredUser) => {
+    setAuthUser(user);
+    setAuthModeWithReset("login");
+    try {
+      localStorage.setItem(SESSION_STORAGE_KEY, user.email);
+    } catch {
+      // ignore storage persistence errors
+    }
+    navigate("account");
+  };
+
   const handleLoginSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setLoginError(null);
+    setAuthError(null);
 
-    if (!loginIdentifier.trim() || !loginPassword.trim()) {
-      setLoginError("Veuillez renseigner vos identifiants.");
+    const email = loginEmail.trim().toLowerCase();
+    const password = loginPassword.trim();
+
+    if (!email || !password) {
+      setAuthError("Veuillez renseigner vos identifiants.");
       return;
     }
 
-    setIsAuthenticated(true);
-    navigate("home");
+    const matchingUser = users.find(
+      (user) => user.email.toLowerCase() === email
+    );
+
+    if (!matchingUser || matchingUser.password !== password) {
+      setAuthError("Email ou mot de passe incorrect.");
+      return;
+    }
+
+    finishAuth(matchingUser);
+    setLoginEmail("");
+    setLoginPassword("");
   };
 
-  const handleMobileLink = (target: "home" | "free-fire" | "login") => {
+  const handleRegisterSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setAuthError(null);
+
+    const name = registerName.trim();
+    const email = registerEmail.trim().toLowerCase();
+    const password = registerPassword.trim();
+
+    if (!name || !email || !password) {
+      setAuthError("Veuillez completer tous les champs.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setAuthError("Le mot de passe doit contenir au moins 6 caracteres.");
+      return;
+    }
+
+    const emailTaken = users.some(
+      (user) => user.email.toLowerCase() === email
+    );
+
+    if (emailTaken) {
+      setAuthError("Un compte existe deja avec cet email.");
+      return;
+    }
+
+    const newUser: StoredUser = { name, email, password };
+    const nextUsers = [...users, newUser];
+    setUsers(nextUsers);
+    try {
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(nextUsers));
+    } catch {
+      // ignore storage persistence errors
+    }
+
+    setRegisterName("");
+    setRegisterEmail("");
+    setRegisterPassword("");
+    finishAuth(newUser);
+  };
+
+  const handleLogout = () => {
+    setAuthUser(null);
+    setPurchaseHistory([]);
+    try {
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+    setIsCartOpen(false);
+    setAuthModeWithReset("login");
+    navigate("login");
+  };
+
+  const handleMobileLink = (target: Page) => {
+    if (target === "login") {
+      goToAuthPage();
+      return;
+    }
+    if (target === "account" && !isAuthenticated) {
+      goToAuthPage();
+      return;
+    }
     navigate(target);
   };
 
+  const handleCheckout = () => {
+    if (!cart.length) return;
+    if (!authUser) {
+      setIsCartOpen(false);
+      setAuthError("Connectez-vous pour finaliser votre achat.");
+      goToAuthPage();
+      return;
+    }
+
+    const timestamp = new Date().toISOString();
+    const entries = cart.map((item) => ({
+      id: `${item.id}-${timestamp}-${Math.random().toString(36).slice(2, 7)}`,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      total: item.price * item.quantity,
+      date: timestamp,
+    }));
+
+    const updatedHistory = [...entries, ...purchaseHistory];
+    setPurchaseHistory(updatedHistory);
+    storePurchases(authUser.email, updatedHistory);
+    setCart([]);
+    setIsCartOpen(false);
+  };
+
   const handleGamesLink = () => {
-    navigate("home");
+    if (pathname !== "/") router.push("/");
     window.setTimeout(() => {
       document.getElementById("games")?.scrollIntoView({ behavior: "smooth" });
-    }, 0);
+    }, 50);
     setIsMenuOpen(false);
   };
 
@@ -258,6 +581,7 @@ function App() {
     elements.forEach((element) => observer.observe(element));
     return () => observer.disconnect();
   }, [page]);
+
   return (
     <div className={`app ${showIntro ? "intro-active" : ""}`}>
       {showIntro && (
@@ -267,39 +591,42 @@ function App() {
         >
           <div className="intro-backdrop" aria-hidden />
           <div className="intro-particles" aria-hidden />
+          <div className="intro-streaks" aria-hidden />
           <div className="intro-card">
             <div className="intro-logo">
               <img src="/hero-right.jpeg" alt="Nexy Shop" />
               <span className="intro-sweep" aria-hidden />
+              <span className="intro-glow" aria-hidden />
             </div>
             <div className="intro-text">
-              <h1>Nexy Shop</h1>
-              <p>Entrez dans l'univers gaming</p>
-            </div>
-            <div className="intro-icons" aria-hidden>
-              <span>🎮</span>
-              <span>💎</span>
-              <span>🪙</span>
-              <span>⚡</span>
+              <div className="intro-title" aria-label={INTRO_TITLE}>
+                {Array.from(INTRO_TITLE).map((char, index) => (
+                  <span
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`${char}-${index}`}
+                    className="intro-letter"
+                    style={{ ["--i" as any]: index }}
+                  >
+                    {char === " " ? "\u00A0" : char}
+                  </span>
+                ))}
+              </div>
+              <div className="intro-progress" aria-hidden>
+                <div className="intro-progress-bar" />
+              </div>
             </div>
           </div>
         </div>
       )}
       <header className="site-header">
         <div className="header-inner">
-          <a
-            className="brand"
-            href="/"
-            onClick={(event) => {
-              event.preventDefault();
-              navigate("home");
-            }}
-          >
+          <Link className="brand" href="/" onClick={() => setIsMenuOpen(false)}>
             <span className="brand-logo" aria-hidden>
               <img src="/hero-right.jpeg" alt="Nexy Shop" />
             </span>
             <span className="brand-text">Nexy Shop</span>
-          </a>
+          </Link>
+
           <div className="header-cta">
             <button
               className="menu-toggle"
@@ -329,10 +656,19 @@ function App() {
             <button
               className="btn btn-primary"
               type="button"
-              onClick={() => navigate("login")}
+              onClick={() => (isAuthenticated ? navigate("account") : goToAuthPage())}
             >
               {isAuthenticated ? "Mon compte" : "Connexion"}
             </button>
+            {isAuthenticated && (
+              <button
+                className="btn btn-ghost"
+                type="button"
+                onClick={handleLogout}
+              >
+                Deconnexion
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -345,13 +681,32 @@ function App() {
             className="mobile-menu"
             onClick={(event) => event.stopPropagation()}
           >
-            <button
-              className="mobile-menu-link"
-              type="button"
-              onClick={() => handleMobileLink("login")}
-            >
-              Connexion
-            </button>
+            {isAuthenticated ? (
+              <>
+                <button
+                  className="mobile-menu-link"
+                  type="button"
+                  onClick={() => handleMobileLink("account")}
+                >
+                  Mon compte
+                </button>
+                <button
+                  className="mobile-menu-link"
+                  type="button"
+                  onClick={handleLogout}
+                >
+                  Deconnexion
+                </button>
+              </>
+            ) : (
+              <button
+                className="mobile-menu-link"
+                type="button"
+                onClick={() => handleMobileLink("login")}
+              >
+                Connexion / Inscription
+              </button>
+            )}
             <button
               className="mobile-menu-link"
               type="button"
@@ -525,42 +880,168 @@ function App() {
           <section className="login-page reveal">
             <div className="login-card">
               <div className="section-head">
-                <h2>Connexion</h2>
-                <p>Accedez a votre compte Nexy Shop.</p>
+                <h2>{authMode === "login" ? "Connexion" : "Creer un compte"}</h2>
+                <p>
+                  {authMode === "login"
+                    ? "Accedez a votre compte Nexy Shop."
+                    : "Rejoignez Nexy Shop et synchronisez vos achats."}
+                </p>
               </div>
-              {loginError && <p className="login-error">{loginError}</p>}
-              <form className="login-form" onSubmit={handleLoginSubmit}>
-                <label>
-                  Email ou nom d'utilisateur
-                  <input
-                    type="text"
-                    value={loginIdentifier}
-                    onChange={(event) => setLoginIdentifier(event.target.value)}
-                    required
-                  />
-                </label>
-                <label>
-                  Mot de passe
-                  <input
-                    type="password"
-                    value={loginPassword}
-                    onChange={(event) => setLoginPassword(event.target.value)}
-                    required
-                  />
-                </label>
-                <button className="btn btn-primary" type="submit">
-                  Se connecter
+              <div className="auth-toggle" role="tablist" aria-label="Choix du mode d'authentification">
+                <button
+                  type="button"
+                  className={authMode === "login" ? "active" : ""}
+                  onClick={() => setAuthModeWithReset("login")}
+                >
+                  Connexion
                 </button>
-                <div className="login-links">
-                  <button type="button" className="link-btn">
-                    Creer un compte
+                <button
+                  type="button"
+                  className={authMode === "register" ? "active" : ""}
+                  onClick={() => setAuthModeWithReset("register")}
+                >
+                  Inscription
+                </button>
+              </div>
+              {authError && <p className="login-error">{authError}</p>}
+              {authMode === "login" ? (
+                <form className="login-form" onSubmit={handleLoginSubmit}>
+                  <label>
+                    Email
+                    <input
+                      type="email"
+                      value={loginEmail}
+                      onChange={(event) => setLoginEmail(event.target.value)}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Mot de passe
+                    <input
+                      type="password"
+                      value={loginPassword}
+                      onChange={(event) => setLoginPassword(event.target.value)}
+                      required
+                    />
+                  </label>
+                  <button className="btn btn-primary" type="submit">
+                    Se connecter
                   </button>
-                  <button type="button" className="link-btn">
-                    Mot de passe oublie ?
+                </form>
+              ) : (
+                <form className="login-form" onSubmit={handleRegisterSubmit}>
+                  <label>
+                    Nom complet
+                    <input
+                      type="text"
+                      value={registerName}
+                      onChange={(event) => setRegisterName(event.target.value)}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Email
+                    <input
+                      type="email"
+                      value={registerEmail}
+                      onChange={(event) => setRegisterEmail(event.target.value)}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Mot de passe
+                    <input
+                      type="password"
+                      value={registerPassword}
+                      onChange={(event) => setRegisterPassword(event.target.value)}
+                      required
+                      minLength={6}
+                    />
+                  </label>
+                  <button className="btn btn-primary" type="submit">
+                    Creer mon compte
+                  </button>
+                </form>
+              )}
+              <p className="auth-hint">
+                {authMode === "login" ? "Pas encore de compte ?" : "Deja membre ?"}{" "}
+                <button
+                  type="button"
+                  className="link-btn"
+                  onClick={() =>
+                    setAuthModeWithReset(authMode === "login" ? "register" : "login")
+                  }
+                >
+                  {authMode === "login" ? "Inscrivez-vous" : "Connectez-vous"}
+                </button>
+              </p>
+            </div>
+          </section>
+        )}
+
+        {page === "account" && authUser && (
+          <section className="account-page reveal">
+            <header className="account-header">
+              <div className="account-brand">
+                <span className="brand-logo" aria-hidden>
+                  <img src="/hero-right.jpeg" alt="Nexy Shop" />
+                </span>
+                <div>
+                  <p className="account-kicker">Mon compte</p>
+                  <h2>Bienvenue, {authUser.name}</h2>
+                </div>
+              </div>
+              <div className="account-actions">
+                <button className="btn btn-ghost" type="button" onClick={() => setIsCartOpen(true)}>
+                  Voir panier
+                </button>
+                <button className="btn btn-primary" type="button" onClick={handleLogout}>
+                  Deconnexion
+                </button>
+              </div>
+            </header>
+
+            <div className="account-profile-card">
+              <div className="account-avatar" aria-hidden>
+                {accountInitial}
+              </div>
+              <div className="account-profile-info">
+                <h3>{authUser.name}</h3>
+                <p>{authUser.email}</p>
+              </div>
+            </div>
+
+            <section className="account-purchases">
+              <div className="section-head">
+                <h3>Mes achats</h3>
+                <p>Historique recent de vos transactions Nexy Shop.</p>
+              </div>
+              {purchaseHistory.length === 0 ? (
+                <div className="account-empty">
+                  <p>Aucun achat enregistre pour le moment.</p>
+                  <button className="btn btn-primary" type="button" onClick={() => navigate("home")}>
+                    Explorer les offres
                   </button>
                 </div>
-              </form>
-            </div>
+              ) : (
+                <div className="purchase-list">
+                  {purchaseHistory.map((purchase) => (
+                    <article className="purchase-card" key={purchase.id}>
+                      <div>
+                        <h4>{purchase.name}</h4>
+                        <p className="purchase-meta">
+                          {purchase.quantity}x • {formatDateTime(purchase.date)}
+                        </p>
+                      </div>
+                      <div className="purchase-total">
+                        <span>Total</span>
+                        <strong>{formatPrice(purchase.total)}</strong>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
           </section>
         )}
 
@@ -712,7 +1193,7 @@ function App() {
                 <span>Total</span>
                 <strong>{formatPrice(cartTotal)}</strong>
               </div>
-              <button className="btn btn-primary" type="button">
+              <button className="btn btn-primary" type="button" onClick={handleCheckout}>
                 Payer
               </button>
             </div>
