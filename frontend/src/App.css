@@ -36,7 +36,9 @@ button {
 .intro-overlay {
   position: fixed;
   inset: 0;
-  z-index: 90;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1084,8 +1086,9 @@ button {
 
 .freefire-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  justify-items: center;
 }
 
 .freefire-card {
@@ -1105,6 +1108,7 @@ button {
   justify-content: space-between;
   gap: 14px;
   min-height: 300px;
+  width: 100%;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
@@ -1142,8 +1146,8 @@ button {
 }
 
 .freefire-image img {
-  width: 130px;
-  height: 130px;
+  width: 100%;
+  height: auto;
   object-fit: contain;
   transition: transform 0.25s ease, filter 0.25s ease;
 }
@@ -1444,6 +1448,12 @@ button {
   }
 }
 
+@media (max-width: 1024px) and (min-width: 641px) {
+  .freefire-grid {
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   body {
     font-size: 16px;
@@ -1472,8 +1482,7 @@ button {
   }
 
   .game-grid,
-  .features-grid,
-  .freefire-grid {
+  .features-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1585,6 +1594,29 @@ button {
   }
 }
 
+@media (max-width: 640px) {
+  .freefire-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .freefire-card {
+    padding: 12px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .freefire-card-bottom {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .freefire-card .btn {
+    width: 100%;
+  }
+}
+
 @media (max-width: 480px) {
   .btn {
     width: 100%;
@@ -1605,14 +1637,6 @@ button {
     font-size: 24px;
   }
 
-  .intro-particles,
-  .intro-streaks {
-    display: none;
-  }
-
-  .intro-progress-bar {
-    animation-duration: 1.6s;
-  }
 }
 
 @media (hover: none) {

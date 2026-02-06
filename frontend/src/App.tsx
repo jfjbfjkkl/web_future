@@ -273,8 +273,7 @@ function App() {
     if (!INTRO_ENABLED) return;
     if (!showIntro) return;
 
-    const isMobile = window.matchMedia?.("(max-width: 600px), (hover: none)")?.matches ?? false;
-    const totalDurationMs = isMobile ? 1800 : 2400;
+    const totalDurationMs = 2400;
     const exitMs = 400;
     const leaveAtMs = Math.max(0, totalDurationMs - exitMs);
 

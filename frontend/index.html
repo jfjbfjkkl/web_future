@@ -45,8 +45,7 @@
           }
         };
 
-        const isMobile = window.matchMedia && window.matchMedia("(max-width: 600px), (hover: none)").matches;
-        const totalMs = isMobile ? 1800 : 2400; // 2–3s max
+        const totalMs = 2400; // 2–3s max
         const exitMs = 400;
 
         window.addEventListener("load", () => {

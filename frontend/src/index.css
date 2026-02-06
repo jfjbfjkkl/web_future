@@ -28,6 +28,8 @@ button {
 #nexy-loader {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100vh;
   background: radial-gradient(circle at center, #0b0f1a, #000);
   z-index: 99999;
   display: flex;
@@ -223,10 +225,6 @@ button {
 }
 
 @media (max-width: 600px), (hover: none) {
-  .grid-bg {
-    display: none;
-  }
-
   .logo-glitch {
     font-size: 34px;
   }
@@ -235,9 +233,6 @@ button {
     width: min(280px, 85vw);
   }
 
-  .loading-progress {
-    animation-duration: 1.6s;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
