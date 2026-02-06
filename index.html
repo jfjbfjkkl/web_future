@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaTopUp – Monnaies de Jeux</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <div class="glow-bg"></div>
+  <header class="site-header">
+    <div class="logo">Nova<span>TopUp</span></div>
+    <nav class="main-nav" aria-label="Navigation principale">
+      <a href="#categories">Catégories</a>
+      <a href="#free-fire">Free Fire</a>
+      <a href="#roblox">Robux</a>
+      <a href="#cod">Call of Duty</a>
+      <a href="#support">Support</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" id="notifToggle" aria-label="Notifications">
+        <span class="icon icon-bell"></span>
+      </button>
+      <button class="icon-btn" id="accountToggle" aria-label="Compte">
+        <span class="icon icon-user"></span>
+      </button>
+      <button class="cart-pill" id="cartToggle" aria-label="Panier">
+        <span class="icon icon-cart"></span>
+        <span id="cartCount">0</span>
+      </button>
+      <button class="burger" id="burgerToggle" aria-label="Menu mobile">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="#categories">Catégories</a>
+    <a href="#free-fire">Free Fire</a>
+    <a href="#roblox">Robux</a>
+    <a href="#cod">Call of Duty</a>
+    <a href="#support">Support</a>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-content">
+      <p class="eyebrow">Boost instantané</p>
+      <h1>Recharge tes jeux favoris en quelques secondes.</h1>
+      <p>Diamants, Robux, COD Points, redeem codes Free Fire et bien plus. Paiement sécurisé, livraison immédiate pour chaque produit à code.</p>
+      <div class="hero-cta">
+        <button class="btn primary">Explorer les offres</button>
+        <button class="btn ghost">Découvrir le catalogue</button>
+      </div>
+      <div class="hero-meta">
+        <div>
+          <strong data-count="500000">0</strong>
+          <span>Transactions réussies</span>
+        </div>
+        <div>
+          <strong data-count="30">0</strong>
+          <span>Jeux supportés</span>
+        </div>
+        <div>
+          <strong data-count="24">0h/24</strong>
+          <span>Livraison codes</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-slider" aria-label="Jeux mis en avant">
+      <div class="slider-track" id="sliderTrack">
+        <article class="slide" style="--img:url('https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1600&q=80')">
+          <div>
+            <h3>Free Fire</h3>
+            <p>Diamants & redeem codes exclusifs.</p>
+          </div>
+        </article>
+        <article class="slide" style="--img:url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1600&q=80')">
+          <div>
+            <h3>Roblox</h3>
+            <p>Robux instantanés, bundles premium.</p>
+          </div>
+        </article>
+        <article class="slide" style="--img:url('https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1600&q=80')">
+          <div>
+            <h3>Call of Duty</h3>
+            <p>COD Points pour Warzone & Mobile.</p>
+          </div>
+        </article>
+        <article class="slide" style="--img:url('https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1600&q=80')">
+          <div>
+            <h3>Valorant</h3>
+            <p>Points Valorant livrés instantanément.</p>
+          </div>
+        </article>
+      </div>
+      <div class="slider-dots" id="sliderDots"></div>
+    </div>
+  </section>
+
+  <section class="category-grid" id="categories">
+    <header>
+      <p class="eyebrow">Catégories</p>
+      <h2>Choisis ton univers</h2>
+      <p>Chaque jeu possède ses packs optimisés, ses bonus et une livraison adaptée.</p>
+    </header>
+    <div class="grid">
+      <div class="category-card">
+        <span class="icon icon-fire"></span>
+        <h3>Free Fire</h3>
+        <p>Diamants & codes premium.</p>
+      </div>
+      <div class="category-card">
+        <span class="icon icon-cube"></span>
+        <h3>Roblox</h3>
+        <p>Robux, premium & cartes cadeaux.</p>
+      </div>
+      <div class="category-card">
+        <span class="icon icon-crosshair"></span>
+        <h3>Call of Duty</h3>
+        <p>COD Points toutes plateformes.</p>
+      </div>
+      <div class="category-card">
+        <span class="icon icon-star"></span>
+        <h3>Valorant</h3>
+        <p>Points & bundles agents.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="game-section" id="free-fire">
+    <header>
+      <div>
+        <p class="eyebrow">Free Fire</p>
+        <h2>Diamants & redeem codes officiels</h2>
+      </div>
+      <button class="btn ghost small">Voir tout</button>
+    </header>
+    <div class="product-row">
+      <article class="product-card" data-code="true">
+        <div class="product-glow"></div>
+        <div class="product-header">
+          <h3>310 Diamants</h3>
+          <span class="tag insta">Instantané</span>
+        </div>
+        <p>Recharge directe via ID joueur.</p>
+        <div class="price-line">
+          <span class="price">12,99€</span>
+          <button class="btn primary add-cart" data-name="310 Diamants Free Fire" data-price="12.99">Ajouter</button>
+        </div>
+      </article>
+      <article class="product-card" data-code="true">
+        <div class="product-glow"></div>
+        <div class="product-header">
+          <h3>Redeem Code Elite</h3>
+          <span class="tag insta">Code</span>
+        </div>
+        <p>Skin exclusif + bonus XP.</p>
+        <div class="price-line">
+          <span class="price">29,90€</span>
+          <button class="btn primary add-cart" data-name="Redeem Code Elite" data-price="29.90">Ajouter</button>
+        </div>
+      </article>
+      <article class="product-card">
+        <div class="product-glow"></div>
+        <div class="product-header">
+          <h3>Pass de combat</h3>
+        </div>
+        <p>Accès saison complet.</p>
+        <div class="price-line">
+          <span class="price">39,00€</span>
+          <button class="btn primary add-cart" data-name="Pass de combat Free Fire" data-price="39.00">Ajouter</button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="game-section" id="roblox">
+    <header>
+      <div>
+        <p class="eyebrow">Roblox</p>
+        <h2>Robux & cartes cadeaux</h2>
+      </div>
+      <button class="btn ghost small">Voir tout</button>
+    </header>
+    <div class="product-row">
+      <article class="product-card" data-code="true">
+        <div class="product-glow"></div>
+        <div class="product-header">
+          <h3>2 000 Robux</h3>
+          <span class="tag insta">Instantané</span>
+        </div>
+        <p>Top up direct sur ton compte.</p>
+        <div class="price-line">
+          <span class="price">24,50€</span>
+          <button class="btn primary add-cart" data-name="2000 Robux" data-price="24.50">Ajouter</button>
+        </div>
+      </article>
+      <article class="product-card" data-code="true">
+        <div class="product-glow"></div>
+        <div class="product-header">
+          <h3>Carte Roblox 25€</h3>
+          <span class="tag insta">Code</span>
+        </div>
+        <p>Livraison email instantanée.</p>
+        <div class="price-line">
+          <span class="price">25,00€</span>
+          <button class="btn primary add-cart" data-name="Carte Roblox 25€" data-price="25.00">Ajouter</button>
+        </div>
+      </article>
+      <article class="product-card">
+        <div class="product-glow"></div>
+        <div class="product-header">
+          <h3>Premium 1 mois</h3>
+        </div>
+        <p>Abonnement Roblox Premium.</p>
+        <div class="price-line">
+          <span class="price">11,99€</span>
+          <button class="btn primary add-cart" data-name="Premium Roblox 1 mois" data-price="11.99">Ajouter</button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="game-section" id="cod">
+    <header>
+      <div>
+        <p class="eyebrow">Call of Duty</p>
+        <h2>COD Points & bundles</h2>
+      </div>
+      <button class="btn ghost small">Voir tout</button>
+    </header>
+    <div class="product-row">
+      <article class="product-card">
+        <div class="product-glow"></div>
+        <div class="product-header">
+          <h3>2 400 CP</h3>
+        </div>
+        <p>Compatible Warzone & Mobile.</p>
+        <div class="price-line">
+          <span class="price">21,90€</span>
+          <button class="btn primary add-cart" data-name="2400 CP" data-price="21.90">Ajouter</button>
+        </div>
+      </article>
+      <article class="product-card">
+        <div class="product-glow"></div>
+        <div class="product-header">
+          <h3>5 000 CP</h3>
+        </div>
+        <p>Pack économique + bonus.</p>
+        <div class="price-line">
+          <span class="price">39,90€</span>
+          <button class="btn primary add-cart" data-name="5000 CP" data-price="39.90">Ajouter</button>
+        </div>
+      </article>
+      <article class="product-card" data-code="true">
+        <div class="product-glow"></div>
+        <div class="product-header">
+          <h3>Bundle Légendaire</h3>
+          <span class="tag insta">Instantané</span>
+        </div>
+        <p>Code livré après paiement.</p>
+        <div class="price-line">
+          <span class="price">59,00€</span>
+          <button class="btn primary add-cart" data-name="Bundle Légendaire COD" data-price="59.00">Ajouter</button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="service-section" id="support">
+    <div class="service-card">
+      <p class="eyebrow">Support & sécurité</p>
+      <h2>Assistance 24/7, paiements sécurisés.</h2>
+      <p>Notre équipe certifiée répond en direct, avec messagerie intégrée et notifications en temps réel.</p>
+      <div class="service-grid">
+        <div>
+          <h3>Panier intelligent</h3>
+          <p>Ajoute, modifie, paye en un clic depuis le panier.</p>
+        </div>
+        <div>
+          <h3>Compte client</h3>
+          <p>Historique d’achats, alertes de livraison, messagerie.</p>
+        </div>
+        <div>
+          <h3>Instant Code</h3>
+          <p>Produits à code livrés immédiatement après paiement.</p>
+        </div>
+      </div>
+    </div>
+    <div class="service-visual">
+      <div class="pulse"></div>
+      <div class="radar"></div>
+      <div class="service-log">
+        <p><span class="dot"></span> Code Free Fire envoyé</p>
+        <p><span class="dot"></span> Robux ajoutés au compte</p>
+        <p><span class="dot"></span> Nouveau message support</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div>
+      <div class="logo">Nova<span>TopUp</span></div>
+      <p>Plateforme e-commerce gaming, livraisons instantanées et sécurité maximale.</p>
+    </div>
+    <div>
+      <h4>Navigation</h4>
+      <ul>
+        <li><a href="#categories">Catégories</a></li>
+        <li><a href="#support">Support</a></li>
+        <li><a href="#">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Compte</h4>
+      <ul>
+        <li><a href="#">Connexion</a></li>
+        <li><a href="#">Commandes</a></li>
+        <li><a href="#">Messagerie</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Panier">
+    <header>
+      <h3>Panier</h3>
+      <button class="icon-btn" data-close-cart>&times;</button>
+    </header>
+    <div class="cart-body" id="cartItems">
+      <p class="empty">Ton panier est vide.</p>
+    </div>
+    <div class="cart-footer">
+      <div>
+        <span>Total</span>
+        <strong id="cartTotal">0,00€</strong>
+      </div>
+      <button class="btn primary" id="checkoutBtn">Payer et recevoir</button>
+    </div>
+  </aside>
+
+  <aside class="panel notifications" id="notifPanel">
+    <header>
+      <h3>Notifications</h3>
+      <button class="icon-btn" data-close-notif>&times;</button>
+    </header>
+    <ul>
+      <li>
+        <p>Redeem Code Free Fire livré.</p>
+        <span>Il y a 2 minutes</span>
+      </li>
+      <li>
+        <p>Nouveau message support.</p>
+        <span>Il y a 15 minutes</span>
+      </li>
+      <li>
+        <p>Promo Robux week-end.</p>
+        <span>Il y a 1 heure</span>
+      </li>
+    </ul>
+  </aside>
+
+  <aside class="panel account" id="accountPanel">
+    <header>
+      <h3>Compte client</h3>
+      <button class="icon-btn" data-close-account>&times;</button>
+    </header>
+    <div class="account-block">
+      <p class="eyebrow">Connexion</p>
+      <input type="email" placeholder="Email" />
+      <input type="password" placeholder="Mot de passe" />
+      <button class="btn primary">Se connecter</button>
+    </div>
+    <div class="account-block">
+      <p class="eyebrow">Historique rapide</p>
+      <ul>
+        <li>Redeem Code Elite • <span>Instantané</span></li>
+        <li>2 000 Robux • <span>Livré</span></li>
+        <li>Pass combat • <span>En cours</span></li>
+      </ul>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+</body>
+</html>
