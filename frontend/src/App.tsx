@@ -267,7 +267,10 @@ function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const cartButtonRef = useRef<HTMLButtonElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const isAuthenticated = Boolean(authUser);
+  const profileButtonRef = useRef<HTMLButtonElement | null>(null);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!INTRO_ENABLED) return;
@@ -308,6 +311,31 @@ function App() {
   }, [cart]);
 
   useEffect(() => {
+    if (!isProfileMenuOpen) return;
+
+    const handlePointer = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+
+      if (
+        profileButtonRef.current?.contains(target) ||
+        profileMenuRef.current?.contains(target)
+      ) {
+        return;
+      }
+
+      setIsProfileMenuOpen(false);
+    };
+
+    document.addEventListener("mousedown", handlePointer);
+    document.addEventListener("touchstart", handlePointer);
+    return () => {
+      document.removeEventListener("mousedown", handlePointer);
+      document.removeEventListener("touchstart", handlePointer);
+    };
+  }, [isProfileMenuOpen]);
+
+  useEffect(() => {
     if (pathname === ROUTE_MAP.account && !authUser) {
       setAuthModeWithReset("login");
       router.push(ROUTE_MAP.login);
@@ -317,6 +345,10 @@ function App() {
       router.push(ROUTE_MAP.account);
     }
   }, [pathname, authUser, router]);
+
+  useEffect(() => {
+    setIsProfileMenuOpen(false);
+  }, [authUser, pathname]);
 
   const navigate = (next: Page) => {
     setIsMenuOpen(false);
@@ -331,6 +363,14 @@ function App() {
   const goToAuthPage = (mode: "login" | "register" = "login") => {
     setAuthModeWithReset(mode);
     navigate("login");
+  };
+
+  const handleProfileIconClick = () => {
+    if (!isAuthenticated) {
+      goToAuthPage("login");
+      return;
+    }
+    setIsProfileMenuOpen((open) => !open);
   };
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -763,8 +803,49 @@ function App() {
                 <defs>
                   <linearGradient id="shell" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0" stopColor="#1b2540" />
+              <div className="profile-icon-wrapper">
+                <button
+                  className="profile-icon-btn"
+                  type="button"
+                  aria-label={isAuthenticated ? "Profil" : "Connexion"}
+                  aria-expanded={isProfileMenuOpen}
+                  onClick={handleProfileIconClick}
+                  ref={profileButtonRef}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden>
+                    <path
+                      d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-4.42 0-8 2.24-8 5v3h16v-3c0-2.76-3.58-5-8-5z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+                {isAuthenticated && isProfileMenuOpen && (
+                  <div className="profile-menu" ref={profileMenuRef} role="menu">
+                    <button
+                      className="profile-menu-item"
+                      type="button"
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        navigate("account");
+                      }}
+                    >
+                      Mon compte
+                    </button>
+                    <button
+                      className="profile-menu-item"
+                      type="button"
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        handleLogout();
+                      }}
+                    >
+                      Deconnexion
+                    </button>
+                  </div>
+                )}
+              </div>
                     <stop offset="1" stopColor="#26335c" />
-                  </linearGradient>
+                className="btn btn-primary auth-btn"
                   <linearGradient id="neon" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0" stopColor="#7c5cff" />
                     <stop offset="1" stopColor="#57d4ff" />
@@ -772,7 +853,7 @@ function App() {
                 </defs>
                 <ellipse cx="100" cy="70" rx="70" ry="44" fill="url(#shell)" />
                 <path
-                  d="M40 70c10-22 42-34 60-32 18-2 50 10 60 32"
+                  className="btn btn-ghost logout-btn"
                   stroke="url(#neon)"
                   strokeWidth="4"
                   fill="none"
