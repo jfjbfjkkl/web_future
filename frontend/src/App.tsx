@@ -85,13 +85,6 @@ const games: GameCard[] = [
   { id: "codm", name: "Call of Duty Mobile", theme: "codm", price: 6800 },
 ];
 
-const gameImages: Record<string, string> = {
-  "free-fire": "/image copy 2.png",
-  pubg: "/image copy 6.png",
-  fortnite: "/image copy 5.png",
-  codm: "/image copy 3.png",
-};
-
 const giftCards: GiftCard[] = [
   {
     id: "google-play",
@@ -399,33 +392,6 @@ function App() {
       document.removeEventListener("touchstart", handlePointer);
     };
   }, [isProfileMenuOpen]);
-
-  useEffect(() => {
-    const wrappers = Array.from(document.querySelectorAll(".scroll-wrapper"));
-    const cleanupFns: Array<() => void> = [];
-
-    wrappers.forEach((wrapper) => {
-      const row = wrapper.querySelector<HTMLElement>(".product-scroll-row");
-      const left = wrapper.querySelector<HTMLButtonElement>(".scroll-arrow.left");
-      const right = wrapper.querySelector<HTMLButtonElement>(".scroll-arrow.right");
-
-      if (!row || !left || !right) return;
-
-      const scrollAmount = 320;
-      const onLeft = () => row.scrollBy({ left: -scrollAmount, behavior: "smooth" });
-      const onRight = () => row.scrollBy({ left: scrollAmount, behavior: "smooth" });
-
-      left.addEventListener("click", onLeft);
-      right.addEventListener("click", onRight);
-
-      cleanupFns.push(() => {
-        left.removeEventListener("click", onLeft);
-        right.removeEventListener("click", onRight);
-      });
-    });
-
-    return () => cleanupFns.forEach((cleanup) => cleanup());
-  }, [page]);
 
   useEffect(() => {
     if (pathname === ROUTE_MAP.account && !authUser) {
@@ -952,36 +918,32 @@ function App() {
               <h2>Nos jeux populaires</h2>
               <p>Rechargez vos jeux favoris avec des credits officiels.</p>
             </div>
-            <div className="scroll-wrapper">
-              <button className="scroll-arrow left" type="button" aria-label="Defiler a gauche">
-                &lsaquo;
-              </button>
-              <div className="product-row product-scroll-row" id="row-games">
-                {games.map((game) => (
-                  <article className="store-card card-game reveal" key={game.id}>
-                  <img
-                    className="img-card-top"
-                    src={gameImages[game.id]}
-                    alt={game.name}
-                    loading="lazy"
-                  />
-                  <div className="card-game-body">
-                    <div className="card-game-title">{game.name}</div>
-                    <div className="card-game-sub">Credits officiels</div>
+            <div className="product-row">
+              {games.map((game) => (
+                <article
+                  className={`store-card game-card game-${game.theme} reveal`}
+                  key={game.id}
+                >
+                  <div className="game-art" aria-hidden>
+                    {game.id === "free-fire" ? (
+                      <img src="/image copy 4.png" alt={game.name} loading="lazy" />
+                    ) : (
+                      <span>{game.name}</span>
+                    )}
+                  </div>
+                  <div className="game-info">
+                    <h3>{game.name}</h3>
+                    <p className="game-subtitle">Credits officiels</p>
                     <button
-                      className="card-game-btn"
+                      className="btn btn-primary"
                       type="button"
                       onClick={() => navigate("free-fire")}
                     >
-                      Explorer
+                      Rentrer
                     </button>
                   </div>
-                  </article>
-                ))}
-              </div>
-              <button className="scroll-arrow right" type="button" aria-label="Defiler a droite">
-                &rsaquo;
-              </button>
+                </article>
+              ))}
             </div>
           </section>
         )}
@@ -992,38 +954,30 @@ function App() {
               <h2 className="section-title-gradient">Cartes Cadeaux</h2>
               <p>Offrez des credits instantanes pour toutes les plateformes.</p>
             </div>
-            <div className="scroll-wrapper">
-              <button className="scroll-arrow left" type="button" aria-label="Defiler a gauche">
-                &lsaquo;
-              </button>
-              <div className="product-row product-scroll-row" id="row-gifts">
-                {giftCards.map((card, index) => (
-                  <div
-                    className="store-card reveal"
-                    key={card.id}
-                    style={{ ["--delay" as any]: `${index * 80}ms` }}
-                  >
-                    <img
-                      src={card.image}
-                      alt={card.name}
-                      className="card-img"
-                      loading="lazy"
-                    />
-                    <div className="card-overlay">
-                      <div className="card-text">
-                        <h3>{card.name}</h3>
-                        <p>Cartes cadeaux</p>
-                      </div>
-                      <button className="enter-btn" type="button">
-                        Explorer
-                      </button>
+            <div className="product-row">
+              {giftCards.map((card, index) => (
+                <article
+                  className="store-card gift-card reveal"
+                  key={card.id}
+                  style={{ ["--delay" as any]: `${index * 80}ms` }}
+                >
+                  <img
+                    src={card.image}
+                    alt={card.name}
+                    className="card-img"
+                    loading="lazy"
+                  />
+                  <div className="card-overlay">
+                    <div className="card-text">
+                      <h3>{card.name}</h3>
+                      <p>Cartes cadeaux</p>
                     </div>
+                    <button className="enter-btn" type="button">
+                      Rentrer
+                    </button>
                   </div>
-                ))}
-              </div>
-              <button className="scroll-arrow right" type="button" aria-label="Defiler a droite">
-                &rsaquo;
-              </button>
+                </article>
+              ))}
             </div>
           </section>
         )}
@@ -1259,13 +1213,9 @@ function App() {
               <h2>Packs de diamants</h2>
               <p>Packs officiels, livraison instantanee.</p>
             </div>
-            <div className="scroll-wrapper">
-              <button className="scroll-arrow left" type="button" aria-label="Defiler a gauche">
-                &lsaquo;
-              </button>
-              <div className="diamond-row product-scroll-row" id="row-freefire">
-                {freeFirePacks.map((pack) => (
-                  <article className="freefire-card reveal diamond-card" key={pack.id}>
+            <div className="freefire-grid freefire-packs">
+              {freeFirePacks.map((pack) => (
+                <article className="freefire-card reveal" key={pack.id}>
                   <div className="freefire-card-top">
                     <span className="freefire-tag">Pack</span>
                     <h3>{pack.title}</h3>
@@ -1292,19 +1242,15 @@ function App() {
                       Acheter
                     </button>
                   </div>
-                  </article>
-                ))}
-              </div>
-              <button className="scroll-arrow right" type="button" aria-label="Defiler a droite">
-                &rsaquo;
-              </button>
+                </article>
+              ))}
             </div>
 
             <div className="section-head">
               <h2>Abonnements</h2>
               <p>Bonus quotidiens avec renouvellement automatique.</p>
             </div>
-            <div className="subscription-grid">
+            <div className="freefire-grid freefire-subs">
               {freeFireSubs.map((sub) => (
                 <article className="freefire-card reveal" key={sub.id}>
                   <div className="freefire-card-top">
