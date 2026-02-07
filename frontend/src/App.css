@@ -1512,15 +1512,17 @@ button {
   padding: 10px 4px 20px 4px;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.product-row:active {
+  cursor: grabbing;
 }
 
 .product-row::-webkit-scrollbar {
-  height: 8px;
-}
-
-.product-row::-webkit-scrollbar-thumb {
-  background: rgba(120, 140, 255, 0.4);
-  border-radius: 10px;
+  display: none;
 }
 
 .game-grid {
@@ -1608,7 +1610,8 @@ button {
   overflow: hidden;
   background: #0b0f1a;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, opacity 0.35s ease;
+  opacity: 0.85;
 }
 
 .store-card.reveal {
@@ -1621,8 +1624,9 @@ button {
 }
 
 .store-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(80, 120, 255, 0.35);
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 12px 30px rgba(120, 140, 255, 0.25);
+  opacity: 1;
 }
 
 .card-img {
