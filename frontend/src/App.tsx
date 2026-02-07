@@ -216,7 +216,7 @@ const ROUTE_MAP: Record<Page, string> = {
   account: "/mon-compte",
 };
 
-const INTRO_ENABLED = false;
+const INTRO_ENABLED = true;
 const INTRO_SESSION_KEY = "nexy_intro_seen";
 const INTRO_TITLE = "NEXY SHOP";
 
@@ -276,8 +276,8 @@ function App() {
     if (!INTRO_ENABLED) return;
     if (!showIntro) return;
 
-    const totalDurationMs = 2400;
-    const exitMs = 400;
+    const totalDurationMs = 5000;
+    const exitMs = 600;
     const leaveAtMs = Math.max(0, totalDurationMs - exitMs);
 
     const leaveTimer = window.setTimeout(() => setIntroLeaving(true), leaveAtMs);
@@ -692,8 +692,49 @@ function App() {
                 </span>
               )}
             </button>
+            <div className="profile-icon-wrapper">
+              <button
+                className="profile-icon-btn"
+                type="button"
+                aria-label={isAuthenticated ? "Profil" : "Connexion"}
+                aria-expanded={isProfileMenuOpen}
+                onClick={handleProfileIconClick}
+                ref={profileButtonRef}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden>
+                  <path
+                    d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-4.42 0-8 2.24-8 5v3h16v-3c0-2.76-3.58-5-8-5z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </button>
+              {isAuthenticated && isProfileMenuOpen && (
+                <div className="profile-menu" ref={profileMenuRef} role="menu">
+                  <button
+                    className="profile-menu-item"
+                    type="button"
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      navigate("account");
+                    }}
+                  >
+                    Mon compte
+                  </button>
+                  <button
+                    className="profile-menu-item"
+                    type="button"
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      handleLogout();
+                    }}
+                  >
+                    Deconnexion
+                  </button>
+                </div>
+              )}
+            </div>
             <button
-              className="btn btn-primary"
+              className="btn btn-primary auth-btn"
               type="button"
               onClick={() => (isAuthenticated ? navigate("account") : goToAuthPage())}
             >
@@ -701,7 +742,7 @@ function App() {
             </button>
             {isAuthenticated && (
               <button
-                className="btn btn-ghost"
+                className="btn btn-ghost logout-btn"
                 type="button"
                 onClick={handleLogout}
               >
@@ -780,99 +821,58 @@ function App() {
       >
         {page === "home" && (
           <section id="home" className="hero reveal">
-          <div className="hero-content">
-            <span className="hero-tag">Premium gaming credits</span>
-            <h1>
-              Achetez vos diamants Free Fire
-              <br />et credits de jeux en toute securite
-            </h1>
-            <p>
-              Livraison rapide • Paiement securise • Support 24/7
-            </p>
-          </div>
-          <div className="hero-visual reveal">
-            <div className="hero-image">
-              <img src="/image copy 3.png" alt="Diamants Free Fire" loading="eager" />
+            <div className="hero-content">
+              <span className="hero-tag">Premium gaming credits</span>
+              <h1>
+                Achetez vos diamants Free Fire
+                <br />et credits de jeux en toute securite
+              </h1>
+              <p>
+                Livraison rapide • Paiement securise • Support 24/7
+              </p>
             </div>
-            <div className="hero-chests" aria-hidden>
-              <div className="chest" />
-              <div className="chest" />
-            </div>
-            <div className="hero-turtle" aria-hidden>
-              <svg viewBox="0 0 200 140" role="img" aria-label="Tortue gaming">
-                <defs>
-                  <linearGradient id="shell" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stopColor="#1b2540" />
-              <div className="profile-icon-wrapper">
-                <button
-                  className="profile-icon-btn"
-                  type="button"
-                  aria-label={isAuthenticated ? "Profil" : "Connexion"}
-                  aria-expanded={isProfileMenuOpen}
-                  onClick={handleProfileIconClick}
-                  ref={profileButtonRef}
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden>
-                    <path
-                      d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-4.42 0-8 2.24-8 5v3h16v-3c0-2.76-3.58-5-8-5z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </button>
-                {isAuthenticated && isProfileMenuOpen && (
-                  <div className="profile-menu" ref={profileMenuRef} role="menu">
-                    <button
-                      className="profile-menu-item"
-                      type="button"
-                      onClick={() => {
-                        setIsProfileMenuOpen(false);
-                        navigate("account");
-                      }}
-                    >
-                      Mon compte
-                    </button>
-                    <button
-                      className="profile-menu-item"
-                      type="button"
-                      onClick={() => {
-                        setIsProfileMenuOpen(false);
-                        handleLogout();
-                      }}
-                    >
-                      Deconnexion
-                    </button>
-                  </div>
-                )}
+            <div className="hero-visual reveal">
+              <div className="hero-image">
+                <img src="/image copy 3.png" alt="Diamants Free Fire" loading="eager" />
               </div>
-                    <stop offset="1" stopColor="#26335c" />
-                className="btn btn-primary auth-btn"
-                  <linearGradient id="neon" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stopColor="#7c5cff" />
-                    <stop offset="1" stopColor="#57d4ff" />
-                  </linearGradient>
-                </defs>
-                <ellipse cx="100" cy="70" rx="70" ry="44" fill="url(#shell)" />
-                <path
-                  className="btn btn-ghost logout-btn"
-                  stroke="url(#neon)"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <path
-                  d="M60 58c10-8 30-12 40-12 10 0 30 4 40 12"
-                  stroke="url(#neon)"
-                  strokeWidth="3"
-                  fill="none"
-                />
-                <circle cx="38" cy="86" r="12" fill="#1c2742" />
-                <circle cx="162" cy="86" r="12" fill="#1c2742" />
-                <circle cx="100" cy="28" r="12" fill="#1c2742" />
-                <circle cx="100" cy="28" r="4" fill="#7c5cff" />
-                <circle cx="34" cy="86" r="3" fill="#7c5cff" />
-                <circle cx="166" cy="86" r="3" fill="#7c5cff" />
-              </svg>
+              <div className="hero-chests" aria-hidden>
+                <div className="chest" />
+                <div className="chest" />
+              </div>
+              <div className="hero-turtle" aria-hidden>
+                <svg viewBox="0 0 200 140" role="img" aria-label="Tortue gaming">
+                  <defs>
+                    <linearGradient id="shell" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0" stopColor="#1b2540" />
+                      <stop offset="1" stopColor="#26335c" />
+                    </linearGradient>
+                    <linearGradient id="neon" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0" stopColor="#7c5cff" />
+                      <stop offset="1" stopColor="#57d4ff" />
+                    </linearGradient>
+                  </defs>
+                  <ellipse cx="100" cy="70" rx="70" ry="44" fill="url(#shell)" />
+                  <path
+                    d="M40 70c10-22 42-34 60-32 18-2 50 10 60 32"
+                    stroke="url(#neon)"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    d="M60 58c10-8 30-12 40-12 10 0 30 4 40 12"
+                    stroke="url(#neon)"
+                    strokeWidth="3"
+                    fill="none"
+                  />
+                  <circle cx="38" cy="86" r="12" fill="#1c2742" />
+                  <circle cx="162" cy="86" r="12" fill="#1c2742" />
+                  <circle cx="100" cy="28" r="12" fill="#1c2742" />
+                  <circle cx="100" cy="28" r="4" fill="#7c5cff" />
+                  <circle cx="34" cy="86" r="3" fill="#7c5cff" />
+                  <circle cx="166" cy="86" r="3" fill="#7c5cff" />
+                </svg>
+              </div>
             </div>
-          </div>
           </section>
         )}
 
