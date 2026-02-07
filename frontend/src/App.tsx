@@ -85,6 +85,13 @@ const games: GameCard[] = [
   { id: "codm", name: "Call of Duty Mobile", theme: "codm", price: 6800 },
 ];
 
+const gameImages: Record<string, string> = {
+  "free-fire": "/image copy 2.png",
+  pubg: "/image copy 6.png",
+  fortnite: "/image copy 5.png",
+  codm: "/image copy 3.png",
+};
+
 const giftCards: GiftCard[] = [
   {
     id: "google-play",
@@ -920,22 +927,22 @@ function App() {
             </div>
             <div className="game-grid">
               {games.map((game) => (
-                <article className={`game-card game-${game.theme} reveal`} key={game.id}>
-                  <div className="game-art" aria-hidden>
-                    {game.id === "free-fire" ? (
-                      <img src="/image copy 4.png" alt={game.name} loading="lazy" />
-                    ) : (
-                      <span>{game.name}</span>
-                    )}
-                  </div>
-                  <div className="game-info">
-                    <h3>{game.name}</h3>
+                <article className="card-game reveal" key={game.id}>
+                  <img
+                    className="img-card-top"
+                    src={gameImages[game.id]}
+                    alt={game.name}
+                    loading="lazy"
+                  />
+                  <div className="card-game-body">
+                    <div className="card-game-title">{game.name}</div>
+                    <div className="card-game-sub">Credits officiels</div>
                     <button
-                      className="btn btn-primary"
+                      className="card-game-btn"
                       type="button"
                       onClick={() => navigate("free-fire")}
                     >
-                      Rentrer
+                      Explorer
                     </button>
                   </div>
                 </article>
@@ -952,22 +959,27 @@ function App() {
             </div>
             <div className="gift-grid">
               {giftCards.map((card, index) => (
-                <article
-                  className="gift-card reveal"
+                <div
+                  className="store-card reveal"
                   key={card.id}
                   style={{ ["--delay" as any]: `${index * 80}ms` }}
                 >
-                  <div className="gift-media">
-                    <img src={card.image} alt={card.name} loading="lazy" />
-                  </div>
-                  <div className="gift-info">
-                    <h3>{card.name}</h3>
-                    <p>{card.priceRange}</p>
-                    <button className="btn btn-primary" type="button">
-                      Rentrer
+                  <img
+                    src={card.image}
+                    alt={card.name}
+                    className="card-img"
+                    loading="lazy"
+                  />
+                  <div className="card-overlay">
+                    <div className="card-text">
+                      <h3>{card.name}</h3>
+                      <p>Cartes cadeaux</p>
+                    </div>
+                    <button className="enter-btn" type="button">
+                      Explorer
                     </button>
                   </div>
-                </article>
+                </div>
               ))}
             </div>
           </section>

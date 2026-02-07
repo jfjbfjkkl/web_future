@@ -1507,86 +1507,69 @@ button {
 .game-grid {
   margin-top: 24px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 }
 
-.game-card {
-  background: rgba(15, 18, 32, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 20px;
+.card-game {
+  border-radius: 22px;
   overflow: hidden;
+  background: linear-gradient(180deg, #1a1f2b, #0f131a);
+  padding: 14px;
+  box-shadow: 0 0 20px rgba(90, 120, 255, 0.25);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  will-change: transform, box-shadow;
+  gap: 12px;
 }
 
-.game-card:hover {
-  transform: translateY(-6px) scale(1.01);
-  box-shadow:
-    0 18px 30px rgba(10, 12, 24, 0.6),
-    0 0 18px rgba(124, 92, 255, 0.22);
+.card-game:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 0 30px rgba(120, 160, 255, 0.45);
 }
 
-.game-art img {
-  transition: transform 0.35s ease, filter 0.35s ease;
-  will-change: transform;
-}
-
-.game-card:hover .game-art img {
-  transform: scale(1.06);
-  filter: saturate(1.05);
-}
-
-.game-art {
+.card-game-image,
+.img-card-top {
   width: 100%;
-  height: 200px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-  overflow: hidden;
-}
-
-.game-art span {
-  padding: 12px;
-}
-
-.game-card img,
-.game-art img {
-  width: 100%;
-  height: 100%;
+  height: 150px;
   object-fit: cover;
   object-position: center;
   display: block;
+  border-radius: 16px;
 }
 
-.game-ff .game-art {
-  background: linear-gradient(135deg, rgba(124, 92, 255, 0.5), rgba(87, 212, 255, 0.3));
+.card-game-body {
+  display: grid;
+  gap: 8px;
 }
 
-.game-pubg .game-art {
-  background: linear-gradient(135deg, rgba(38, 83, 142, 0.55), rgba(20, 28, 55, 0.3));
+.card-game-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
 }
 
-.game-fortnite .game-art {
-  background: linear-gradient(135deg, rgba(87, 212, 255, 0.55), rgba(124, 92, 255, 0.35));
+.card-game-sub {
+  font-size: 14px;
+  color: rgba(221, 221, 221, 0.8);
 }
 
-.game-codm .game-art {
-  background: linear-gradient(135deg, rgba(255, 164, 94, 0.4), rgba(28, 28, 48, 0.4));
+.card-game-btn {
+  background: linear-gradient(90deg, #6aa6ff, #7b5cff);
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  width: fit-content;
 }
 
-.game-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.card-game-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  box-shadow: 0 0 16px rgba(120, 160, 255, 0.45);
 }
 
 .gift-grid {
@@ -1596,75 +1579,77 @@ button {
   gap: 20px;
 }
 
-.gift-card {
-  background: rgba(15, 18, 32, 0.75);
-  border: 1px solid rgba(124, 92, 255, 0.3);
-  border-radius: 20px;
-  padding: 16px;
-  display: grid;
-  gap: 14px;
-  box-shadow:
-    0 18px 36px rgba(7, 10, 20, 0.55),
-    inset 0 0 20px rgba(124, 92, 255, 0.08);
+.store-card {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #0b0f1a;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
-  will-change: transform, box-shadow;
 }
 
-.gift-card.reveal {
+.store-card.reveal {
   transform: translateY(20px);
   transition-delay: var(--delay, 0ms);
 }
 
-.gift-card.reveal.is-visible {
+.store-card.reveal.is-visible {
   transform: translateY(0);
 }
 
-.gift-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow:
-    0 24px 48px rgba(7, 10, 20, 0.7),
-    0 0 20px rgba(124, 92, 255, 0.35);
+.store-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(80, 120, 255, 0.35);
 }
 
-.gift-media {
-  height: 120px;
-  border-radius: 16px;
-  overflow: hidden;
-  background: rgba(8, 12, 24, 0.9);
-  border: 1px solid rgba(87, 212, 255, 0.18);
-  display: grid;
-  place-items: center;
-}
-
-.gift-media img {
+.card-img {
   width: 100%;
-  height: 100%;
+  height: 180px;
   object-fit: cover;
   display: block;
 }
 
-.gift-info {
-  display: grid;
-  gap: 8px;
+.card-overlay {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+  background: linear-gradient(
+    to top,
+    rgba(10, 12, 20, 0.95),
+    rgba(10, 12, 20, 0.6),
+    transparent
+  );
 }
 
-.gift-info h3 {
+.card-text h3 {
+  color: #ffffff;
   margin: 0;
   font-size: 16px;
 }
 
-.gift-info p {
-  margin: 0;
-  color: rgba(234, 234, 234, 0.7);
+.card-text p {
+  color: #9aa4c7;
+  margin: 4px 0 0;
   font-size: 13px;
 }
 
-.gift-card .btn {
-  width: fit-content;
+.enter-btn {
+  background: #e9ecff;
+  color: #2d3cff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
-.gift-card .btn:hover {
-  animation: giftBtnPulse 1.1s ease-in-out infinite;
+.enter-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 0 16px rgba(120, 160, 255, 0.35);
 }
 
 .features-grid {
@@ -1819,19 +1804,12 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .game-grid,
+  .game-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .features-grid {
     grid-template-columns: 1fr;
-  }
-
-  .game-info {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .game-info .btn {
-    width: 100%;
   }
 
   .freefire-card-bottom {
@@ -1893,8 +1871,13 @@ button {
     letter-spacing: 0.24em;
   }
 
-  .game-art {
-    height: 140px;
+  .card-game {
+    min-height: 0;
+  }
+
+  .card-game-btn {
+    width: 100%;
+    text-align: center;
   }
 
   .gift-grid {
@@ -1902,24 +1885,20 @@ button {
     gap: 12px;
   }
 
-  .gift-card {
+  .card-img {
+    height: 140px;
+  }
+
+  .card-overlay {
     padding: 12px;
   }
 
-  .gift-media {
-    height: 96px;
-  }
-
-  .gift-info h3,
-  .gift-info p {
+  .card-text h3,
+  .card-text p {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-  }
-
-  .gift-card .btn {
-    width: 100%;
   }
 }
 
@@ -2088,13 +2067,15 @@ button {
     box-shadow: 0 0 14px rgba(124, 92, 255, 0.45);
   }
 
-  .game-card:hover,
+  .card-game:hover,
+  .store-card:hover,
   .freefire-card:hover {
     transform: none;
     box-shadow: none;
   }
 
-  .game-card:active,
+  .card-game:active,
+  .store-card:active,
   .freefire-card:active {
     transform: scale(0.98);
   }
@@ -2117,11 +2098,10 @@ button {
   }
 
   .btn,
-  .game-card,
-  .gift-card,
+  .card-game,
+  .store-card,
   .freefire-card,
   .feature-card,
-  .game-art img,
   .freefire-image img {
     transition: none !important;
   }
