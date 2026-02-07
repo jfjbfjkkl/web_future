@@ -1853,6 +1853,29 @@ button {
     height: 300px;
   }
 
+  .product-scroll-row,
+  .diamond-row {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .product-scroll-row::-webkit-scrollbar,
+  .diamond-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .product-card,
+  .diamond-card,
+  .store-card {
+    scroll-snap-align: start;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
   .gift-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

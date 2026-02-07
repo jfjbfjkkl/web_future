@@ -405,6 +405,66 @@ function App() {
   }, [pathname, authUser, router]);
 
   useEffect(() => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+    const media = window.matchMedia?.("(max-width: 768px)");
+    if (!media?.matches) return;
+
+    const rows = Array.from(
+      document.querySelectorAll<HTMLElement>(".product-scroll-row, .diamond-row")
+    );
+    if (rows.length === 0) return;
+
+    const timerMap = new WeakMap<HTMLElement, number>();
+    const handlers = new Map<HTMLElement, () => void>();
+
+    rows.forEach((row) => {
+      const handler = () => {
+        row
+          .querySelectorAll<HTMLElement>(
+            ".store-card, .product-card, .diamond-card"
+          )
+          .forEach((card) => {
+            card.style.transform = "scale(0.97)";
+          });
+
+        const existingTimer = timerMap.get(row);
+        if (existingTimer) {
+          window.clearTimeout(existingTimer);
+        }
+
+        const timer = window.setTimeout(() => {
+          row
+            .querySelectorAll<HTMLElement>(
+              ".store-card, .product-card, .diamond-card"
+            )
+            .forEach((card) => {
+              card.style.transform = "scale(1)";
+            });
+        }, 120);
+
+        timerMap.set(row, timer);
+      };
+
+      row.addEventListener("scroll", handler, { passive: true });
+      handlers.set(row, handler);
+    });
+
+    return () => {
+      rows.forEach((row) => {
+        const handler = handlers.get(row);
+        if (handler) {
+          row.removeEventListener("scroll", handler);
+        }
+        const timer = timerMap.get(row);
+        if (timer) {
+          window.clearTimeout(timer);
+        }
+      });
+    };
+  }, []);
+
+  useEffect(() => {
     setIsProfileMenuOpen(false);
   }, [authUser, pathname]);
 
@@ -918,7 +978,7 @@ function App() {
               <h2>Nos jeux populaires</h2>
               <p>Rechargez vos jeux favoris avec des credits officiels.</p>
             </div>
-            <div className="product-row">
+            <div className="product-row product-scroll-row">
               {games.map((game) => (
                 <article
                   className={`store-card game-card game-${game.theme} reveal`}
@@ -954,7 +1014,7 @@ function App() {
               <h2 className="section-title-gradient">Cartes Cadeaux</h2>
               <p>Offrez des credits instantanes pour toutes les plateformes.</p>
             </div>
-            <div className="product-row">
+            <div className="product-row product-scroll-row">
               {giftCards.map((card, index) => (
                 <article
                   className="store-card gift-card reveal"
