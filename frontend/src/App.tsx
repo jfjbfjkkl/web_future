@@ -125,6 +125,7 @@ type CartItem = {
   quantity: number;
   image?: string;
   game?: string;
+  variant?: string;
 };
 
 type FreeFirePack = {
@@ -154,6 +155,12 @@ type PurchaseEntry = {
   quantity: number;
   total: number;
   date: string;
+};
+
+type Toast = {
+  id: string;
+  message: string;
+  variant: "success" | "info";
 };
 
 type Page = "home" | "free-fire" | "login" | "account";
@@ -194,8 +201,9 @@ const freeFireSubs: FreeFireSub[] = [
 
 const USERS_STORAGE_KEY = "nexy_users";
 const SESSION_STORAGE_KEY = "nexy_session";
-const CART_STORAGE_KEY = "nexy_cart";
+const CART_SESSION_KEY = "nexy_cart_session";
 const purchasesKeyFor = (email: string) => `nexy_purchases_${email}`;
+const cartKeyForUser = (email: string) => `nexy_cart_${email}`;
 
 const safeParseJSON = <T,>(value: string | null, fallback: T): T => {
   if (!value) return fallback;
@@ -237,18 +245,58 @@ const storePurchases = (email: string, entries: PurchaseEntry[]) => {
   }
 };
 
-const readStoredCart = (): CartItem[] => {
-  if (typeof window === "undefined") return [];
-  return safeParseJSON<CartItem[]>(localStorage.getItem(CART_STORAGE_KEY), []);
+const readCartFromStorage = (storage: Storage | null, key: string): CartItem[] => {
+  if (!storage) return [];
+  return safeParseJSON<CartItem[]>(storage.getItem(key), []);
 };
 
-const storeCart = (items: CartItem[]) => {
+const readCartForUser = (user: StoredUser | null): CartItem[] => {
+  if (typeof window === "undefined") return [];
+  if (!user) {
+    return readCartFromStorage(sessionStorage, CART_SESSION_KEY);
+  }
+  return readCartFromStorage(localStorage, cartKeyForUser(user.email));
+};
+
+const storeCartForUser = (user: StoredUser | null, items: CartItem[]) => {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    if (!user) {
+      sessionStorage.setItem(CART_SESSION_KEY, JSON.stringify(items));
+      return;
+    }
+    localStorage.setItem(cartKeyForUser(user.email), JSON.stringify(items));
   } catch {
     // ignore storage errors
   }
+};
+
+const clearGuestCart = () => {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(CART_SESSION_KEY);
+  } catch {
+    // ignore
+  }
+};
+
+const mergeCartItems = (base: CartItem[], incoming: CartItem[]) => {
+  const merged = new Map<string, CartItem>();
+
+  base.forEach((item) => merged.set(item.id, { ...item }));
+  incoming.forEach((item) => {
+    const existing = merged.get(item.id);
+    if (existing) {
+      merged.set(item.id, {
+        ...existing,
+        quantity: existing.quantity + item.quantity,
+      });
+      return;
+    }
+    merged.set(item.id, { ...item });
+  });
+
+  return Array.from(merged.values());
 };
 
 const ROUTE_MAP: Record<Page, string> = {
@@ -268,6 +316,8 @@ const HERO_SLIDES = [
   "/image copy 11.png",
   "/image copy 12.png",
 ];
+
+const TOAST_DURATION_MS = 2500;
 
 function App() {
   const router = useRouter();
@@ -305,9 +355,13 @@ function App() {
   const [introDone, setIntroDone] = useState(!initialShouldShowIntro);
   const [heroSlideIndex, setHeroSlideIndex] = useState(0);
 
-  const [cart, setCart] = useState<CartItem[]>(() => readStoredCart());
+  const [cart, setCart] = useState<CartItem[]>(() =>
+    readCartForUser(initialAuthStateRef.current.sessionUser)
+  );
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartBump, setCartBump] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [qtyPulseId, setQtyPulseId] = useState<string | null>(null);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [registerName, setRegisterName] = useState("");
@@ -316,6 +370,8 @@ function App() {
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authError, setAuthError] = useState<string | null>(null);
   const cartButtonRef = useRef<HTMLButtonElement | null>(null);
+  const cartDrawerRef = useRef<HTMLElement | null>(null);
+  const qtyPulseTimerRef = useRef<number | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const isAuthenticated = Boolean(authUser);
@@ -373,8 +429,26 @@ function App() {
   }, [authUser]);
 
   useEffect(() => {
-    storeCart(cart);
-  }, [cart]);
+    storeCartForUser(authUser, cart);
+  }, [cart, authUser]);
+
+  useEffect(() => {
+    if (!isCartOpen) return;
+
+    const body = document.body;
+    const previousOverflow = body.style.overflow;
+    body.style.overflow = "hidden";
+    body.classList.add("cart-open");
+
+    window.setTimeout(() => {
+      cartDrawerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 30);
+
+    return () => {
+      body.style.overflow = previousOverflow;
+      body.classList.remove("cart-open");
+    };
+  }, [isCartOpen]);
 
   useEffect(() => {
     if (!isProfileMenuOpen) return;
@@ -500,10 +574,13 @@ function App() {
   };
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartTotal = cart.reduce(
+  const cartSubtotal = cart.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
+  const cartTaxes = 0;
+  const cartServiceFee = 0;
+  const cartTotal = cartSubtotal + cartTaxes + cartServiceFee;
   const accountInitial = authUser?.name?.trim()?.charAt(0).toUpperCase() ?? "N";
 
   const triggerCartPulse = () => {
@@ -511,7 +588,14 @@ function App() {
     window.setTimeout(() => setCartBump(false), 350);
   };
 
-  const addToCart = (item: { id: string; name: string; price: number; image?: string; game?: string }) => {
+  const addToCart = (item: {
+    id: string;
+    name: string;
+    price: number;
+    image?: string;
+    game?: string;
+    variant?: string;
+  }) => {
     setCart((prev) => {
       const existing = prev.find((entry) => entry.id === item.id);
       if (existing) {
@@ -523,16 +607,32 @@ function App() {
       }
       return [...prev, { ...item, quantity: 1 }];
     });
+    pushToast("Produit ajoute au panier");
   };
 
   const updateCartQuantity = (id: string, delta: number) => {
+    let didChange = false;
     setCart((prev) =>
-      prev.map((entry) =>
-        entry.id === id
-          ? { ...entry, quantity: Math.max(1, entry.quantity + delta) }
-          : entry
-      )
+      prev.map((entry) => {
+        if (entry.id !== id) return entry;
+        const nextQuantity = Math.max(1, entry.quantity + delta);
+        if (nextQuantity !== entry.quantity) {
+          didChange = true;
+        }
+        return { ...entry, quantity: nextQuantity };
+      })
     );
+
+    if (!didChange) return;
+
+    setQtyPulseId(id);
+    if (qtyPulseTimerRef.current) {
+      window.clearTimeout(qtyPulseTimerRef.current);
+    }
+    qtyPulseTimerRef.current = window.setTimeout(() => {
+      setQtyPulseId(null);
+    }, 220);
+    pushToast("Quantite mise a jour", "info");
   };
 
   const animateToCart = (sourceImage: HTMLImageElement | null) => {
@@ -587,7 +687,7 @@ function App() {
 
   const handleBuyClick = (
     event: MouseEvent<HTMLButtonElement>,
-    item: { id: string; name: string; price: number; game?: string }
+    item: { id: string; name: string; price: number; game?: string; variant?: string }
   ) => {
     const card = event.currentTarget.closest(".freefire-card");
     const image = card?.querySelector(".freefire-image img") as HTMLImageElement | null;
@@ -601,9 +701,29 @@ function App() {
 
   const removeFromCart = (id: string) => {
     setCart((prev) => prev.filter((entry) => entry.id !== id));
+    pushToast("Produit retire du panier");
+  };
+
+  const pushToast = (message: string, variant: "success" | "info" = "success") => {
+    if (typeof window === "undefined") return;
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setToasts((prev) => [...prev, { id, message, variant }]);
+    window.setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, TOAST_DURATION_MS);
   };
 
   const finishAuth = (user: StoredUser) => {
+    const guestCart = readCartForUser(null);
+    const userCart = readCartForUser(user);
+    const mergedCart = mergeCartItems(userCart, guestCart);
+
+    setCart(mergedCart);
+    storeCartForUser(user, mergedCart);
+    if (guestCart.length > 0) {
+      clearGuestCart();
+    }
+
     setAuthUser(user);
     setAuthModeWithReset("login");
     try {
@@ -690,6 +810,8 @@ function App() {
     } catch {
       // ignore
     }
+    clearGuestCart();
+    setCart([]);
     setIsCartOpen(false);
     setAuthModeWithReset("login");
     navigate("login");
@@ -743,10 +865,7 @@ function App() {
 
   const openCartWithScroll = () => {
     if (typeof window === "undefined") return;
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    window.setTimeout(() => {
-      setIsCartOpen(true);
-    }, 400);
+    setIsCartOpen(true);
   };
 
   useEffect(() => {
@@ -1304,6 +1423,7 @@ function App() {
                           id: pack.id,
                           name: pack.title,
                           price: pack.price,
+                          variant: "Pack",
                         })
                       }
                     >
@@ -1343,6 +1463,7 @@ function App() {
                           id: sub.id,
                           name: sub.title,
                           price: sub.price,
+                          variant: "Abonnement",
                         })
                       }
                     >
@@ -1375,6 +1496,7 @@ function App() {
           <aside
             className="cart-panel"
             onClick={(event) => event.stopPropagation()}
+            ref={cartDrawerRef}
           >
             <div className="cart-header">
               <div>
@@ -1422,8 +1544,12 @@ function App() {
                 </div>
               ) : (
                 <div className="cart-items">
-                  {cart.map((item) => (
-                    <div className="cart-item" key={item.id}>
+                  {cart.map((item, index) => (
+                    <div
+                      className={`cart-item ${qtyPulseId === item.id ? "qty-pulse" : ""}`}
+                      key={item.id}
+                      style={{ ["--delay" as any]: `${index * 70}ms` }}
+                    >
                       <div className="cart-item-media">
                         <img
                           src={item.image ?? "/image.png"}
@@ -1434,7 +1560,9 @@ function App() {
                       <div className="cart-item-info">
                         <div>
                           <strong>{item.name}</strong>
+                          {item.variant && <span>Variant: {item.variant}</span>}
                           <span>{item.game ?? "Nexy Shop"}</span>
+                          <span className="cart-delivery">Livraison instantanee</span>
                         </div>
                         <div className="cart-item-price">{formatPrice(item.price)}</div>
                         <div className="cart-item-actions">
@@ -1495,14 +1623,18 @@ function App() {
               <div className="cart-summary">
                 <div>
                   <span>Sous-total</span>
-                  <strong>{formatPrice(cartTotal)}</strong>
+                  <strong>{formatPrice(cartSubtotal)}</strong>
                 </div>
                 <div>
-                  <span>Frais</span>
-                  <strong>{formatPrice(0)}</strong>
+                  <span>Taxes</span>
+                  <strong>{formatPrice(cartTaxes)}</strong>
+                </div>
+                <div>
+                  <span>Frais service</span>
+                  <strong>{formatPrice(cartServiceFee)}</strong>
                 </div>
                 <div className="cart-total">
-                  <span>Total</span>
+                  <span>Total final</span>
                   <strong>{formatPrice(cartTotal)}</strong>
                 </div>
               </div>
@@ -1513,6 +1645,13 @@ function App() {
           </aside>
         </div>
       )}
+      <div className="toast-region" aria-live="polite" aria-atomic="true">
+        {toasts.map((toast) => (
+          <div key={toast.id} className={`toast toast-${toast.variant}`}>
+            {toast.message}
+          </div>
+        ))}
+      </div>
       <button
         className="floating-shop-btn"
         type="button"
