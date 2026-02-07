@@ -71,11 +71,51 @@ type GameCard = {
   price: number;
 };
 
+type GiftCard = {
+  id: string;
+  name: string;
+  priceRange: string;
+  image: string;
+};
+
 const games: GameCard[] = [
   { id: "free-fire", name: "Free Fire", theme: "ff", price: 7000 },
   { id: "pubg", name: "PUBG Mobile", theme: "pubg", price: 6500 },
   { id: "fortnite", name: "Fortnite", theme: "fortnite", price: 7200 },
   { id: "codm", name: "Call of Duty Mobile", theme: "codm", price: 6800 },
+];
+
+const giftCards: GiftCard[] = [
+  {
+    id: "google-play",
+    name: "Google Play",
+    priceRange: "5 000 - 50 000 FCFA",
+    image: "/image copy 2.png",
+  },
+  {
+    id: "apple",
+    name: "Apple Gift Card",
+    priceRange: "10 000 - 75 000 FCFA",
+    image: "/image copy 5.png",
+  },
+  {
+    id: "steam",
+    name: "Steam Wallet",
+    priceRange: "5 000 - 60 000 FCFA",
+    image: "/image copy 6.png",
+  },
+  {
+    id: "playstation",
+    name: "PlayStation Store",
+    priceRange: "10 000 - 80 000 FCFA",
+    image: "/image copy 3.png",
+  },
+  {
+    id: "xbox",
+    name: "Xbox Gift Card",
+    priceRange: "10 000 - 80 000 FCFA",
+    image: "/image copy 4.png",
+  },
 ];
 
 type CartItem = {
@@ -220,7 +260,14 @@ const ROUTE_MAP: Record<Page, string> = {
 
 const INTRO_ENABLED = true;
 const INTRO_SESSION_KEY = "nexy_intro_seen";
-const INTRO_TITLE = "NEXY SHOP";
+const INTRO_MESSAGE = "BIENVENUE DANS\nNEXY SHOP";
+const HERO_SLIDES = [
+  "/image copy 8.png",
+  "/image copy 9.png",
+  "/image copy 10.png",
+  "/image copy 11.png",
+  "/image copy 12.png",
+];
 
 function App() {
   const router = useRouter();
@@ -247,7 +294,7 @@ function App() {
   const initialShouldShowIntro = (() => {
     if (!INTRO_ENABLED) return false;
     try {
-      return sessionStorage.getItem(INTRO_SESSION_KEY) !== "1";
+      return sessionStorage.getItem(INTRO_SESSION_KEY) !== "true";
     } catch {
       return true;
     }
@@ -256,6 +303,7 @@ function App() {
   const [showIntro, setShowIntro] = useState(initialShouldShowIntro);
   const [introLeaving, setIntroLeaving] = useState(false);
   const [introDone, setIntroDone] = useState(!initialShouldShowIntro);
+  const [heroSlideIndex, setHeroSlideIndex] = useState(0);
 
   const [cart, setCart] = useState<CartItem[]>(() => readStoredCart());
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -278,8 +326,8 @@ function App() {
     if (!INTRO_ENABLED) return;
     if (!showIntro) return;
 
-    const totalDurationMs = 5000;
-    const exitMs = 600;
+    const totalDurationMs = 2200;
+    const exitMs = 350;
     const leaveAtMs = Math.max(0, totalDurationMs - exitMs);
 
     const leaveTimer = window.setTimeout(() => setIntroLeaving(true), leaveAtMs);
@@ -288,7 +336,7 @@ function App() {
       setIntroLeaving(false);
       setIntroDone(true);
       try {
-        sessionStorage.setItem(INTRO_SESSION_KEY, "1");
+        sessionStorage.setItem(INTRO_SESSION_KEY, "true");
       } catch {
         // ignore
       }
@@ -299,6 +347,14 @@ function App() {
       window.clearTimeout(doneTimer);
     };
   }, [showIntro]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setHeroSlideIndex((current) => (current + 1) % HERO_SLIDES.length);
+    }, 3000);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!authUser) {
@@ -315,7 +371,7 @@ function App() {
   useEffect(() => {
     if (!isProfileMenuOpen) return;
 
-    const handlePointer = (event: Event) => {
+    const handlePointer = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node | null;
       if (!target) return;
 
@@ -646,38 +702,21 @@ function App() {
   }, [page]);
 
   return (
-    <div className={`app ${showIntro ? "intro-active" : ""}`}>
+    <div className="main-wrapper">
+      <div className={`app ${showIntro ? "intro-active" : ""}`}>
       {showIntro && (
         <div
           id="intro"
           className={`intro-overlay ${introLeaving ? "leaving" : ""}`}
         >
-          <div className="intro-backdrop" aria-hidden />
-          <div className="intro-particles" aria-hidden />
-          <div className="intro-streaks" aria-hidden />
-          <div className="intro-card">
-            <div className="intro-logo">
-              <img src="/hero-right.jpeg" alt="Nexy Shop" />
-              <span className="intro-sweep" aria-hidden />
-              <span className="intro-glow" aria-hidden />
+          <div className="intro-grid" aria-hidden />
+          <div className="intro-glow" aria-hidden />
+          <div className="intro-content">
+            <div className="intro-title" data-text={INTRO_MESSAGE}>
+              BIENVENUE DANS
+              <span>NEXY SHOP</span>
             </div>
-            <div className="intro-text">
-              <div className="intro-title" aria-label={INTRO_TITLE}>
-                {Array.from(INTRO_TITLE).map((char, index) => (
-                  <span
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`${char}-${index}`}
-                    className="intro-letter"
-                    style={{ ["--i" as any]: index }}
-                  >
-                    {char === " " ? "\u00A0" : char}
-                  </span>
-                ))}
-              </div>
-              <div className="intro-progress" aria-hidden>
-                <div className="intro-progress-bar" />
-              </div>
-            </div>
+            <span className="intro-sweep" aria-hidden />
           </div>
         </div>
       )}
@@ -855,58 +894,20 @@ function App() {
         className={`main-content ${introDone ? "" : "main-hidden"}`}
       >
         {page === "home" && (
-          <section id="home" className="hero reveal">
-            <div className="hero-content">
-              <span className="hero-tag">Premium gaming credits</span>
-              <h1>
-                Achetez vos diamants Free Fire
-                <br />et credits de jeux en toute securite
-              </h1>
-              <p>
-                Livraison rapide • Paiement securise • Support 24/7
-              </p>
-            </div>
-            <div className="hero-visual reveal">
-              <div className="hero-image">
-                <img src="/image copy 3.png" alt="Diamants Free Fire" loading="eager" />
-              </div>
-              <div className="hero-chests" aria-hidden>
-                <div className="chest" />
-                <div className="chest" />
-              </div>
-              <div className="hero-turtle" aria-hidden>
-                <svg viewBox="0 0 200 140" role="img" aria-label="Tortue gaming">
-                  <defs>
-                    <linearGradient id="shell" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0" stopColor="#1b2540" />
-                      <stop offset="1" stopColor="#26335c" />
-                    </linearGradient>
-                    <linearGradient id="neon" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0" stopColor="#7c5cff" />
-                      <stop offset="1" stopColor="#57d4ff" />
-                    </linearGradient>
-                  </defs>
-                  <ellipse cx="100" cy="70" rx="70" ry="44" fill="url(#shell)" />
-                  <path
-                    d="M40 70c10-22 42-34 60-32 18-2 50 10 60 32"
-                    stroke="url(#neon)"
-                    strokeWidth="4"
-                    fill="none"
+          <section id="home" className="hero-banner reveal">
+            <div className="hero-slider" aria-label="Nexy Shop banner">
+              {HERO_SLIDES.map((src, index) => (
+                <div
+                  key={src}
+                  className={`hero-slide ${index === heroSlideIndex ? "active" : ""}`}
+                >
+                  <img
+                    src={src}
+                    alt={`Nexy Shop banner ${index + 1}`}
+                    loading={index === 0 ? "eager" : "lazy"}
                   />
-                  <path
-                    d="M60 58c10-8 30-12 40-12 10 0 30 4 40 12"
-                    stroke="url(#neon)"
-                    strokeWidth="3"
-                    fill="none"
-                  />
-                  <circle cx="38" cy="86" r="12" fill="#1c2742" />
-                  <circle cx="162" cy="86" r="12" fill="#1c2742" />
-                  <circle cx="100" cy="28" r="12" fill="#1c2742" />
-                  <circle cx="100" cy="28" r="4" fill="#7c5cff" />
-                  <circle cx="34" cy="86" r="3" fill="#7c5cff" />
-                  <circle cx="166" cy="86" r="3" fill="#7c5cff" />
-                </svg>
-              </div>
+                </div>
+              ))}
             </div>
           </section>
         )}
@@ -934,7 +935,36 @@ function App() {
                       type="button"
                       onClick={() => navigate("free-fire")}
                     >
-                      Acheter
+                      Rentrer
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {page === "home" && (
+          <section className="section reveal">
+            <div className="section-head centered">
+              <h2 className="section-title-gradient">Cartes Cadeaux</h2>
+              <p>Offrez des credits instantanes pour toutes les plateformes.</p>
+            </div>
+            <div className="gift-grid">
+              {giftCards.map((card, index) => (
+                <article
+                  className="gift-card reveal"
+                  key={card.id}
+                  style={{ ["--delay" as any]: `${index * 80}ms` }}
+                >
+                  <div className="gift-media">
+                    <img src={card.image} alt={card.name} loading="lazy" />
+                  </div>
+                  <div className="gift-info">
+                    <h3>{card.name}</h3>
+                    <p>{card.priceRange}</p>
+                    <button className="btn btn-primary" type="button">
+                      Rentrer
                     </button>
                   </div>
                 </article>
@@ -1427,6 +1457,7 @@ function App() {
           />
         </svg>
       </button>
+      </div>
     </div>
   );
 }
