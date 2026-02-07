@@ -357,6 +357,14 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const body = document.body;
+    if (!body) return;
+    body.classList.remove("page-transition");
+    void body.offsetWidth;
+    body.classList.add("page-transition");
+  }, [pathname]);
+
+  useEffect(() => {
     if (!authUser) {
       setPurchaseHistory([]);
       return;

@@ -25,6 +25,23 @@ body {
   overflow-x: hidden;
 }
 
+.page-transition {
+  animation: pageEnter 0.35s ease-out;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
 .main-wrapper {
   position: relative;
   min-height: 100vh;
