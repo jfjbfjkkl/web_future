@@ -1,16 +1,29 @@
 :root {
   --bg: #05060a;
-  --card: #0f111a;
-  --card-strong: #161927;
-  --text: #f5f6fb;
-  --muted: #9fa5c0;
-  --accent: #3d7bff;
-  --accent-strong: #7b9dff;
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px 4px 20px 4px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .product-row::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .product-row::-webkit-scrollbar-thumb {
+    background: rgba(120, 140, 255, 0.4);
+    border-radius: 10px;
   --border: rgba(255, 255, 255, 0.08);
   --success: #3dffc7;
-  font-family: 'Space Grotesk', system-ui;
+  .store-card,
+  .product-card {
 }
-
+    min-width: 240px;
+    max-width: 240px;
+    flex: 0 0 auto;
 *,
 *::before,
 *::after {
@@ -20,7 +33,8 @@
 body {
   margin: 0;
   background: var(--bg);
-  color: var(--text);
+  .store-card::before,
+  .product-card::before {
   line-height: 1.5;
   overflow-x: hidden;
 }
@@ -29,19 +43,30 @@ a {
   color: inherit;
   text-decoration: none;
 }
-
+  .store-card:hover,
+  .product-card:hover {
 button {
   font: inherit;
   cursor: pointer;
   border: none;
-  background: none;
+  .store-card:hover::before,
+  .product-card:hover::before {
   color: inherit;
 }
 
-.glow-bg {
+  .store-card:hover .product-glow,
+  .product-card:hover .product-glow {
   position: fixed;
   inset: 0;
   background: radial-gradient(circle at 20% 20%, rgba(61, 123, 255, 0.25), transparent 50%),
+
+  @media (max-width: 768px) {
+    .store-card,
+    .product-card {
+      min-width: 200px;
+      max-width: 200px;
+    }
+  }
     radial-gradient(circle at 80% 0%, rgba(61, 255, 199, 0.25), transparent 50%);
   opacity: 0.5;
   z-index: 0;

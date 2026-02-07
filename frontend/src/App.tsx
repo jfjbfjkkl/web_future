@@ -925,9 +925,9 @@ function App() {
               <h2>Nos jeux populaires</h2>
               <p>Rechargez vos jeux favoris avec des credits officiels.</p>
             </div>
-            <div className="game-grid">
+            <div className="product-row">
               {games.map((game) => (
-                <article className="card-game reveal" key={game.id}>
+                <article className="store-card card-game reveal" key={game.id}>
                   <img
                     className="img-card-top"
                     src={gameImages[game.id]}
@@ -957,7 +957,7 @@ function App() {
               <h2 className="section-title-gradient">Cartes Cadeaux</h2>
               <p>Offrez des credits instantanes pour toutes les plateformes.</p>
             </div>
-            <div className="gift-grid">
+            <div className="product-row">
               {giftCards.map((card, index) => (
                 <div
                   className="store-card reveal"

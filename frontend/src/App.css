@@ -1504,6 +1504,25 @@ button {
   color: transparent;
 }
 
+.product-row {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 10px 4px 20px 4px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.product-row::-webkit-scrollbar {
+  height: 8px;
+}
+
+.product-row::-webkit-scrollbar-thumb {
+  background: rgba(120, 140, 255, 0.4);
+  border-radius: 10px;
+}
+
 .game-grid {
   margin-top: 24px;
   display: grid;
@@ -1581,6 +1600,10 @@ button {
 
 .store-card {
   position: relative;
+  min-width: 240px;
+  max-width: 240px;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
   border-radius: 22px;
   overflow: hidden;
   background: #0b0f1a;
@@ -2078,6 +2101,13 @@ button {
   .store-card:active,
   .freefire-card:active {
     transform: scale(0.98);
+  }
+}
+
+@media (max-width: 768px) {
+  .store-card {
+    min-width: 200px;
+    max-width: 200px;
   }
 }
 
