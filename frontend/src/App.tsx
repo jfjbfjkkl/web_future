@@ -895,11 +895,23 @@ function App() {
                   <div className="game-info">
                     <h3>{game.name}</h3>
                     <button
-                      className="btn btn-primary"
+                      className="btn btn-primary game-btn"
                       type="button"
                       onClick={() => navigate("free-fire")}
                     >
-                      Acheter
+                      <span className="game-btn-icon" aria-hidden>
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M7 6h10l2 5-2 5H7L5 11l2-5z"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          />
+                          <circle cx="9" cy="11" r="1.4" fill="currentColor" />
+                          <circle cx="15" cy="11" r="1.4" fill="currentColor" />
+                        </svg>
+                      </span>
+                      <span className="game-btn-text">Acheter</span>
                     </button>
                   </div>
                 </article>
@@ -1213,6 +1225,79 @@ function App() {
           </section>
         )}
       </main>
+
+      <nav className="mobile-bottom-nav" aria-label="Navigation mobile">
+        <button
+          className={`mobile-nav-item ${page === "home" ? "active" : ""}`}
+          type="button"
+          onClick={() => navigate("home")}
+        >
+          <span className="mobile-nav-icon" aria-hidden>
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M4 11l8-6 8 6v8H4v-8z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+            </svg>
+          </span>
+          <span className="mobile-nav-label">Accueil</span>
+        </button>
+        <button
+          className={`mobile-nav-item ${page === "free-fire" ? "active" : ""}`}
+          type="button"
+          onClick={handleGamesLink}
+        >
+          <span className="mobile-nav-icon" aria-hidden>
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M6 8h12l2 4-2 4H6l-2-4 2-4z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <circle cx="9" cy="12" r="1" fill="currentColor" />
+              <circle cx="15" cy="12" r="1" fill="currentColor" />
+            </svg>
+          </span>
+          <span className="mobile-nav-label">Jeux</span>
+        </button>
+        <button
+          className={`mobile-nav-item ${isCartOpen ? "active" : ""}`}
+          type="button"
+          onClick={() => setIsCartOpen(true)}
+        >
+          <span className="mobile-nav-icon" aria-hidden>
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M6 6h14l-2 9H8L6 6z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <circle cx="9" cy="19" r="1.5" fill="currentColor" />
+              <circle cx="17" cy="19" r="1.5" fill="currentColor" />
+            </svg>
+          </span>
+          <span className="mobile-nav-label">Panier</span>
+        </button>
+        <button
+          className={`mobile-nav-item ${page === "account" ? "active" : ""}`}
+          type="button"
+          onClick={() => (isAuthenticated ? navigate("account") : goToAuthPage())}
+        >
+          <span className="mobile-nav-icon" aria-hidden>
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-4.42 0-8 2.24-8 5v3h16v-3c0-2.76-3.58-5-8-5z"
+                fill="currentColor"
+              />
+            </svg>
+          </span>
+          <span className="mobile-nav-label">Compte</span>
+        </button>
+      </nav>
 
       <footer className="site-footer">
         <div className="footer-inner">
