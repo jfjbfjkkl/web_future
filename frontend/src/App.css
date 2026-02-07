@@ -1373,11 +1373,40 @@ button {
   color: rgba(234, 234, 234, 0.75);
 }
 
-.freefire-grid {
+.diamond-row {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 12px 4px 20px;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.diamond-row::-webkit-scrollbar {
+  display: none;
+}
+
+.diamond-card {
+  flex: 0 0 auto;
+  min-width: 210px;
+  max-width: 210px;
+  scroll-snap-align: start;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.diamond-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 15px 30px rgba(90, 120, 255, 0.25);
+}
+
+.subscription-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
-  justify-items: center;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
 }
 
 .freefire-card {
@@ -1401,6 +1430,10 @@ button {
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
+.freefire-card.diamond-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
 
 .freefire-card:hover {
   transform: translateY(-6px) scale(1.01);
@@ -1408,6 +1441,11 @@ button {
   box-shadow:
     0 22px 46px rgba(255, 110, 60, 0.45),
     0 0 24px rgba(255, 120, 60, 0.35);
+}
+
+.freefire-card.diamond-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 15px 30px rgba(90, 120, 255, 0.25);
 }
 
 .freefire-card-top {
@@ -1502,6 +1540,41 @@ button {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+.scroll-wrapper {
+  position: relative;
+}
+
+.scroll-arrow {
+  position: absolute;
+  top: 45%;
+  transform: translateY(-50%);
+  z-index: 5;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  font-weight: bold;
+  background: rgba(20, 20, 30, 0.85);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s ease;
+}
+
+.scroll-arrow:hover {
+  transform: translateY(-50%) scale(1.1);
+  background: #5a78ff;
+}
+
+.scroll-arrow.left {
+  left: -18px;
+}
+
+.scroll-arrow.right {
+  right: -18px;
 }
 
 .product-row {
@@ -1802,6 +1875,10 @@ button {
 @media (max-width: 768px) {
   body {
     font-size: 16px;
+  }
+
+  .scroll-arrow {
+    display: none;
   }
 
   .menu-toggle {

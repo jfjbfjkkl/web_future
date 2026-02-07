@@ -401,6 +401,33 @@ function App() {
   }, [isProfileMenuOpen]);
 
   useEffect(() => {
+    const wrappers = Array.from(document.querySelectorAll(".scroll-wrapper"));
+    const cleanupFns: Array<() => void> = [];
+
+    wrappers.forEach((wrapper) => {
+      const row = wrapper.querySelector<HTMLElement>(".product-scroll-row");
+      const left = wrapper.querySelector<HTMLButtonElement>(".scroll-arrow.left");
+      const right = wrapper.querySelector<HTMLButtonElement>(".scroll-arrow.right");
+
+      if (!row || !left || !right) return;
+
+      const scrollAmount = 320;
+      const onLeft = () => row.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+      const onRight = () => row.scrollBy({ left: scrollAmount, behavior: "smooth" });
+
+      left.addEventListener("click", onLeft);
+      right.addEventListener("click", onRight);
+
+      cleanupFns.push(() => {
+        left.removeEventListener("click", onLeft);
+        right.removeEventListener("click", onRight);
+      });
+    });
+
+    return () => cleanupFns.forEach((cleanup) => cleanup());
+  }, [page]);
+
+  useEffect(() => {
     if (pathname === ROUTE_MAP.account && !authUser) {
       setAuthModeWithReset("login");
       router.push(ROUTE_MAP.login);
@@ -925,9 +952,13 @@ function App() {
               <h2>Nos jeux populaires</h2>
               <p>Rechargez vos jeux favoris avec des credits officiels.</p>
             </div>
-            <div className="product-row">
-              {games.map((game) => (
-                <article className="store-card card-game reveal" key={game.id}>
+            <div className="scroll-wrapper">
+              <button className="scroll-arrow left" type="button" aria-label="Defiler a gauche">
+                &lsaquo;
+              </button>
+              <div className="product-row product-scroll-row" id="row-games">
+                {games.map((game) => (
+                  <article className="store-card card-game reveal" key={game.id}>
                   <img
                     className="img-card-top"
                     src={gameImages[game.id]}
@@ -945,8 +976,12 @@ function App() {
                       Explorer
                     </button>
                   </div>
-                </article>
-              ))}
+                  </article>
+                ))}
+              </div>
+              <button className="scroll-arrow right" type="button" aria-label="Defiler a droite">
+                &rsaquo;
+              </button>
             </div>
           </section>
         )}
@@ -957,30 +992,38 @@ function App() {
               <h2 className="section-title-gradient">Cartes Cadeaux</h2>
               <p>Offrez des credits instantanes pour toutes les plateformes.</p>
             </div>
-            <div className="product-row">
-              {giftCards.map((card, index) => (
-                <div
-                  className="store-card reveal"
-                  key={card.id}
-                  style={{ ["--delay" as any]: `${index * 80}ms` }}
-                >
-                  <img
-                    src={card.image}
-                    alt={card.name}
-                    className="card-img"
-                    loading="lazy"
-                  />
-                  <div className="card-overlay">
-                    <div className="card-text">
-                      <h3>{card.name}</h3>
-                      <p>Cartes cadeaux</p>
+            <div className="scroll-wrapper">
+              <button className="scroll-arrow left" type="button" aria-label="Defiler a gauche">
+                &lsaquo;
+              </button>
+              <div className="product-row product-scroll-row" id="row-gifts">
+                {giftCards.map((card, index) => (
+                  <div
+                    className="store-card reveal"
+                    key={card.id}
+                    style={{ ["--delay" as any]: `${index * 80}ms` }}
+                  >
+                    <img
+                      src={card.image}
+                      alt={card.name}
+                      className="card-img"
+                      loading="lazy"
+                    />
+                    <div className="card-overlay">
+                      <div className="card-text">
+                        <h3>{card.name}</h3>
+                        <p>Cartes cadeaux</p>
+                      </div>
+                      <button className="enter-btn" type="button">
+                        Explorer
+                      </button>
                     </div>
-                    <button className="enter-btn" type="button">
-                      Explorer
-                    </button>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <button className="scroll-arrow right" type="button" aria-label="Defiler a droite">
+                &rsaquo;
+              </button>
             </div>
           </section>
         )}
@@ -1216,9 +1259,13 @@ function App() {
               <h2>Packs de diamants</h2>
               <p>Packs officiels, livraison instantanee.</p>
             </div>
-            <div className="freefire-grid freefire-packs">
-              {freeFirePacks.map((pack) => (
-                <article className="freefire-card reveal" key={pack.id}>
+            <div className="scroll-wrapper">
+              <button className="scroll-arrow left" type="button" aria-label="Defiler a gauche">
+                &lsaquo;
+              </button>
+              <div className="diamond-row product-scroll-row" id="row-freefire">
+                {freeFirePacks.map((pack) => (
+                  <article className="freefire-card reveal diamond-card" key={pack.id}>
                   <div className="freefire-card-top">
                     <span className="freefire-tag">Pack</span>
                     <h3>{pack.title}</h3>
@@ -1245,15 +1292,19 @@ function App() {
                       Acheter
                     </button>
                   </div>
-                </article>
-              ))}
+                  </article>
+                ))}
+              </div>
+              <button className="scroll-arrow right" type="button" aria-label="Defiler a droite">
+                &rsaquo;
+              </button>
             </div>
 
             <div className="section-head">
               <h2>Abonnements</h2>
               <p>Bonus quotidiens avec renouvellement automatique.</p>
             </div>
-            <div className="freefire-grid freefire-subs">
+            <div className="subscription-grid">
               {freeFireSubs.map((sub) => (
                 <article className="freefire-card reveal" key={sub.id}>
                   <div className="freefire-card-top">
