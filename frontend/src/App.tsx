@@ -83,6 +83,8 @@ type CartItem = {
   name: string;
   price: number;
   quantity: number;
+  image?: string;
+  game?: string;
 };
 
 type FreeFirePack = {
@@ -385,7 +387,7 @@ function App() {
     window.setTimeout(() => setCartBump(false), 350);
   };
 
-  const addToCart = (item: { id: string; name: string; price: number }) => {
+  const addToCart = (item: { id: string; name: string; price: number; image?: string; game?: string }) => {
     setCart((prev) => {
       const existing = prev.find((entry) => entry.id === item.id);
       if (existing) {
@@ -397,6 +399,16 @@ function App() {
       }
       return [...prev, { ...item, quantity: 1 }];
     });
+  };
+
+  const updateCartQuantity = (id: string, delta: number) => {
+    setCart((prev) =>
+      prev.map((entry) =>
+        entry.id === id
+          ? { ...entry, quantity: Math.max(1, entry.quantity + delta) }
+          : entry
+      )
+    );
   };
 
   const animateToCart = (sourceImage: HTMLImageElement | null) => {
@@ -451,12 +463,16 @@ function App() {
 
   const handleBuyClick = (
     event: MouseEvent<HTMLButtonElement>,
-    item: { id: string; name: string; price: number }
+    item: { id: string; name: string; price: number; game?: string }
   ) => {
     const card = event.currentTarget.closest(".freefire-card");
     const image = card?.querySelector(".freefire-image img") as HTMLImageElement | null;
     animateToCart(image);
-    addToCart(item);
+    addToCart({
+      ...item,
+      image: image?.src,
+      game: item.game ?? "Free Fire",
+    });
   };
 
   const removeFromCart = (id: string) => {
@@ -601,6 +617,14 @@ function App() {
     setIsMenuOpen(false);
   };
 
+  const openCartWithScroll = () => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.setTimeout(() => {
+      setIsCartOpen(true);
+    }, 400);
+  };
+
   useEffect(() => {
     const elements = Array.from(document.querySelectorAll(".reveal"));
     if (!elements.length) return;
@@ -681,11 +705,22 @@ function App() {
             <button
               className={`btn cart-btn ${cartBump ? "bump" : ""}`}
               type="button"
-              onClick={() => setIsCartOpen(true)}
+              onClick={openCartWithScroll}
               ref={cartButtonRef}
+              aria-label="Ouvrir le panier"
             >
-              <span className="cart-icon" aria-hidden>🛒</span>
-              <span className="cart-text">Panier</span>
+              <span className="cart-icon" aria-hidden>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M6 6h14l-2 9H8L6 6z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  <circle cx="9" cy="19" r="1.5" fill="currentColor" />
+                  <circle cx="17" cy="19" r="1.5" fill="currentColor" />
+                </svg>
+              </span>
               {cartCount > 0 && (
                 <span className={`cart-count ${cartBump ? "bump" : ""}`}>
                   {cartCount}
@@ -791,7 +826,7 @@ function App() {
               className="mobile-menu-link"
               type="button"
               onClick={() => {
-                setIsCartOpen(true);
+                openCartWithScroll();
                 setIsMenuOpen(false);
               }}
             >
@@ -895,23 +930,11 @@ function App() {
                   <div className="game-info">
                     <h3>{game.name}</h3>
                     <button
-                      className="btn btn-primary game-btn"
+                      className="btn btn-primary"
                       type="button"
                       onClick={() => navigate("free-fire")}
                     >
-                      <span className="game-btn-icon" aria-hidden>
-                        <svg viewBox="0 0 24 24">
-                          <path
-                            d="M7 6h10l2 5-2 5H7L5 11l2-5z"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          />
-                          <circle cx="9" cy="11" r="1.4" fill="currentColor" />
-                          <circle cx="15" cy="11" r="1.4" fill="currentColor" />
-                        </svg>
-                      </span>
-                      <span className="game-btn-text">Acheter</span>
+                      Acheter
                     </button>
                   </div>
                 </article>
@@ -1084,7 +1107,7 @@ function App() {
                 </div>
               </div>
               <div className="account-actions">
-                <button className="btn btn-ghost" type="button" onClick={() => setIsCartOpen(true)}>
+                <button className="btn btn-ghost" type="button" onClick={openCartWithScroll}>
                   Voir panier
                 </button>
                 <button className="btn btn-primary" type="button" onClick={handleLogout}>
@@ -1226,79 +1249,6 @@ function App() {
         )}
       </main>
 
-      <nav className="mobile-bottom-nav" aria-label="Navigation mobile">
-        <button
-          className={`mobile-nav-item ${page === "home" ? "active" : ""}`}
-          type="button"
-          onClick={() => navigate("home")}
-        >
-          <span className="mobile-nav-icon" aria-hidden>
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M4 11l8-6 8 6v8H4v-8z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-            </svg>
-          </span>
-          <span className="mobile-nav-label">Accueil</span>
-        </button>
-        <button
-          className={`mobile-nav-item ${page === "free-fire" ? "active" : ""}`}
-          type="button"
-          onClick={handleGamesLink}
-        >
-          <span className="mobile-nav-icon" aria-hidden>
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M6 8h12l2 4-2 4H6l-2-4 2-4z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <circle cx="9" cy="12" r="1" fill="currentColor" />
-              <circle cx="15" cy="12" r="1" fill="currentColor" />
-            </svg>
-          </span>
-          <span className="mobile-nav-label">Jeux</span>
-        </button>
-        <button
-          className={`mobile-nav-item ${isCartOpen ? "active" : ""}`}
-          type="button"
-          onClick={() => setIsCartOpen(true)}
-        >
-          <span className="mobile-nav-icon" aria-hidden>
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M6 6h14l-2 9H8L6 6z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <circle cx="9" cy="19" r="1.5" fill="currentColor" />
-              <circle cx="17" cy="19" r="1.5" fill="currentColor" />
-            </svg>
-          </span>
-          <span className="mobile-nav-label">Panier</span>
-        </button>
-        <button
-          className={`mobile-nav-item ${page === "account" ? "active" : ""}`}
-          type="button"
-          onClick={() => (isAuthenticated ? navigate("account") : goToAuthPage())}
-        >
-          <span className="mobile-nav-icon" aria-hidden>
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-4.42 0-8 2.24-8 5v3h16v-3c0-2.76-3.58-5-8-5z"
-                fill="currentColor"
-              />
-            </svg>
-          </span>
-          <span className="mobile-nav-label">Compte</span>
-        </button>
-      </nav>
-
       <footer className="site-footer">
         <div className="footer-inner">
           <div className="footer-links">
@@ -1320,7 +1270,10 @@ function App() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="cart-header">
-              <h3>Panier</h3>
+              <div>
+                <p className="cart-kicker">Votre selection</p>
+                <h3>Panier</h3>
+              </div>
               <button
                 type="button"
                 className="link-btn"
@@ -1329,42 +1282,151 @@ function App() {
                 Fermer
               </button>
             </div>
-            {cart.length === 0 ? (
-              <p className="cart-empty">Votre panier est vide.</p>
-            ) : (
-              <div className="cart-items">
-                {cart.map((item) => (
-                  <div className="cart-item" key={item.id}>
-                    <div>
-                      <strong>{item.name}</strong>
-                      <span>{formatPrice(item.price)}</span>
-                    </div>
-                    <div className="cart-item-meta">
-                      <span>x{item.quantity}</span>
-                      <button
-                        type="button"
-                        className="link-btn"
-                        onClick={() => removeFromCart(item.id)}
-                      >
-                        Supprimer
-                      </button>
-                    </div>
+            <div className="cart-body">
+              {cart.length === 0 ? (
+                <div className="cart-empty-state">
+                  <div className="cart-empty-icon" aria-hidden>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="M6 6h14l-2 9H8L6 6z"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M9 19h0.01M17 19h0.01"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
                   </div>
-                ))}
-              </div>
-            )}
+                  <p>Votre panier est vide</p>
+                  <button
+                    className="btn btn-primary"
+                    type="button"
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      handleGamesLink();
+                    }}
+                  >
+                    Voir les jeux
+                  </button>
+                </div>
+              ) : (
+                <div className="cart-items">
+                  {cart.map((item) => (
+                    <div className="cart-item" key={item.id}>
+                      <div className="cart-item-media">
+                        <img
+                          src={item.image ?? "/image.png"}
+                          alt={item.name}
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="cart-item-info">
+                        <div>
+                          <strong>{item.name}</strong>
+                          <span>{item.game ?? "Nexy Shop"}</span>
+                        </div>
+                        <div className="cart-item-price">{formatPrice(item.price)}</div>
+                        <div className="cart-item-actions">
+                          <div className="cart-qty">
+                            <button
+                              type="button"
+                              className="cart-qty-btn"
+                              onClick={() => updateCartQuantity(item.id, -1)}
+                              aria-label="Retirer une quantite"
+                            >
+                              -
+                            </button>
+                            <span className="cart-qty-value">{item.quantity}</span>
+                            <button
+                              type="button"
+                              className="cart-qty-btn"
+                              onClick={() => updateCartQuantity(item.id, 1)}
+                              aria-label="Ajouter une quantite"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            className="cart-remove"
+                            onClick={() => removeFromCart(item.id)}
+                            aria-label="Supprimer l'article"
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden>
+                              <path
+                                d="M4 7h16"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              />
+                              <path
+                                d="M9 7V5h6v2"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              />
+                              <path
+                                d="M7 7l1 12h8l1-12"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="cart-footer">
-              <div className="cart-total">
-                <span>Total</span>
-                <strong>{formatPrice(cartTotal)}</strong>
+              <div className="cart-summary">
+                <div>
+                  <span>Sous-total</span>
+                  <strong>{formatPrice(cartTotal)}</strong>
+                </div>
+                <div>
+                  <span>Frais</span>
+                  <strong>{formatPrice(0)}</strong>
+                </div>
+                <div className="cart-total">
+                  <span>Total</span>
+                  <strong>{formatPrice(cartTotal)}</strong>
+                </div>
               </div>
-              <button className="btn btn-primary" type="button" onClick={handleCheckout}>
-                Payer
+              <button className="btn btn-primary cart-checkout" type="button" onClick={handleCheckout}>
+                Payer maintenant
               </button>
             </div>
           </aside>
         </div>
       )}
+      <button
+        className="floating-shop-btn"
+        type="button"
+        aria-label="Ouvrir la boutique"
+        onClick={handleGamesLink}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden>
+          <path
+            d="M3 7h18l-2 12H5L3 7z"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+          <path
+            d="M7 7l1-3h8l1 3"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+        </svg>
+      </button>
     </div>
   );
 }
