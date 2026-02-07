@@ -371,7 +371,7 @@ function App() {
   useEffect(() => {
     if (!isProfileMenuOpen) return;
 
-    const handlePointer = (event: MouseEvent | TouchEvent) => {
+    const handlePointer = (event: Event) => {
       const target = event.target as Node | null;
       if (!target) return;
 
