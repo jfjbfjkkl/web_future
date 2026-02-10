@@ -328,6 +328,7 @@ const page: Page =
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authError, setAuthError] = useState<string | null>(null);
   const cartButtonRef = useRef<HTMLButtonElement | null>(null);
+  const cartPanelRef = useRef<HTMLElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const isAuthenticated = Boolean(authUser);
@@ -692,6 +693,22 @@ const page: Page =
       setIsCartOpen(true);
     }, 400);
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    if (!isMobile) return;
+
+    if (isCartOpen) {
+      document.body.style.overflow = "hidden";
+      window.setTimeout(() => {
+        cartPanelRef.current?.focus();
+      }, 0);
+      return;
+    }
+
+    document.body.style.overflow = "";
+  }, [isCartOpen]);
 
   useEffect(() => {
     const elements = Array.from(document.querySelectorAll(".reveal"));
@@ -1420,8 +1437,10 @@ const page: Page =
       {isCartOpen && (
         <div className="cart-overlay" onClick={() => setIsCartOpen(false)}>
           <aside
-            className="cart-panel"
+            className="cart-panel cart-modal"
             onClick={(event) => event.stopPropagation()}
+            ref={cartPanelRef}
+            tabIndex={-1}
           >
             <div className="cart-header">
               <div>
@@ -1430,10 +1449,14 @@ const page: Page =
               </div>
               <button
                 type="button"
-                className="link-btn"
+                className="link-btn cart-close"
+                aria-label="Fermer le panier"
                 onClick={() => setIsCartOpen(false)}
               >
-                Fermer
+                <span className="cart-close-text">Fermer</span>
+                <span className="cart-close-icon" aria-hidden>
+                  X
+                </span>
               </button>
             </div>
             <div className="cart-body">
