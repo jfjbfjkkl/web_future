@@ -991,7 +991,14 @@ const page: Page =
             </div>
             <div className="game-grid">
               {games.map((game) => (
-                <article className={`game-card game-${game.theme} ${game.id === "free-fire" || game.id === "pubg" ? "popular" : ""} reveal`} key={game.id}>
+                <article
+                  className={`game-card game-${game.theme} ${game.id === "free-fire" || game.id === "pubg" ? "popular" : ""} reveal`}
+                  key={game.id}
+                >
+                  {/* Badge visuel pour les jeux mis en avant */}
+                  {(game.id === "free-fire" || game.id === "pubg") && (
+                    <span className="game-badge">Populaire</span>
+                  )}
                   <div className="game-art" aria-hidden>
                     {game.id === "free-fire" ? (
                       <img src="/image copy 4.png" alt={game.name} loading="lazy" />
@@ -1001,6 +1008,7 @@ const page: Page =
                   </div>
                   <div className="game-info">
                     <h3>{game.name}</h3>
+                    <p className="game-meta">Recharge instantanee • Credits officiels</p>
                     {/* BOUTON VERS LIBRE-FEU */}
                     {game.id === "free-fire" && (
                       <button
@@ -1045,11 +1053,11 @@ const page: Page =
               <h2 className="section-title-gradient">Cartes Cadeaux</h2>
               <p>Offrez des credits instantanes pour toutes les plateformes.</p>
             </div>
-            <div className="gift-grid product-row">
-              {/* CARTE CADEAU = MÊME COMPOSANT PRODUIT QUE FREE FIRE/PUBG */}
+            <div className="gift-grid">
+              {/* Cartes cadeaux : style carte bancaire pour un rendu premium */}
               {giftCards.map((card, index) => (
                 <article
-                  className="freefire-card gift-card reveal"
+                  className="gift-card-premium reveal"
                   key={card.id}
                   style={{ ["--delay" as any]: `${index * 80}ms` }}
                 >
@@ -1066,34 +1074,31 @@ const page: Page =
                       {card.badge}
                     </span>
                   )}
-                  <div className="freefire-card-top">
-                    <span className="freefire-tag">Carte cadeau</span>
-                    <h3>{card.name}</h3>
-                  </div>
-                  <div className="freefire-image gift-card-image">
-                    <img src={card.image} alt={card.name} loading="lazy" />
-                  </div>
-                  <div className="freefire-card-bottom">
-                    <div>
-                      <div className="freefire-price">{formatPrice(card.startingPrice)}</div>
-                      <p className="freefire-meta">{card.priceRange}</p>
-                      <p className="gift-card-note">{card.description}</p>
+                  <div className="gift-card-body">
+                    <div className="gift-card-content">
+                      <span className="gift-card-tag">Carte cadeau</span>
+                      <h3>{card.name}</h3>
+                      <p className="gift-card-value">{card.priceRange}</p>
+                      <p className="gift-card-meta">Code officiel • Livraison instantanee</p>
                     </div>
-                    <button
-                      className="btn freefire-btn"
-                      type="button"
-                      onClick={(event) =>
-                        handleBuyClick(event, {
-                          id: card.id,
-                          name: card.name,
-                          price: card.startingPrice,
-                          game: "Carte cadeau",
-                        })
-                      }
-                    >
-                      Explorer
-                    </button>
+                    <div className="gift-card-media">
+                      <img src={card.image} alt={card.name} loading="lazy" />
+                    </div>
                   </div>
+                  <button
+                    className="btn gift-card-cta"
+                    type="button"
+                    onClick={(event) =>
+                      handleBuyClick(event, {
+                        id: card.id,
+                        name: card.name,
+                        price: card.startingPrice,
+                        game: "Carte cadeau",
+                      })
+                    }
+                  >
+                    Explorer
+                  </button>
                 </article>
               ))}
             </div>
