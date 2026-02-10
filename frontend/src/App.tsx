@@ -64,6 +64,13 @@ function Link(
   );
 }
 
+type GameCard = {
+  id: string;
+  name: string;
+  theme: string;
+  price: number;
+};
+
 type GiftCardBadge = "Populaire" | "Promo" | "Nouveau";
 
 type GiftCard = {
@@ -76,23 +83,12 @@ type GiftCard = {
   badge?: GiftCardBadge;
 };
 
-type PopularGameCardStatus = "live" | "soon";
-
-type PopularGameCard = {
-  id: string;
-  title: string;
-  subtitle: string;
-  image: string;
-  badge?: "Populaire";
-  status: PopularGameCardStatus;
-};
-
-type PopularGameSection = {
-  id: "free-fire" | "pubg" | "fortnite" | "codm";
-  name: string;
-  slug?: "free-fire" | "pubg";
-  cards: PopularGameCard[];
-};
+const games: GameCard[] = [
+  { id: "free-fire", name: "Free Fire", theme: "ff", price: 7000 },
+  { id: "pubg", name: "PUBG Mobile", theme: "pubg", price: 6500 },
+  { id: "fortnite", name: "Fortnite", theme: "fortnite", price: 7200 },
+  { id: "codm", name: "Call of Duty Mobile", theme: "codm", price: 6800 },
+];
 
 const giftCards: GiftCard[] = [
   {
@@ -137,109 +133,6 @@ const giftCards: GiftCard[] = [
     startingPrice: 12000,
     image: "/image copy 4.png",
     description: "Rechargez Xbox ou PC Game Pass en 1 clic.",
-  },
-];
-
-const popularGameSections: PopularGameSection[] = [
-  {
-    id: "free-fire",
-    name: "Free Fire",
-    slug: "free-fire",
-    cards: [
-      {
-        id: "ff-fast",
-        title: "Recharge express",
-        subtitle: "Diamants officiels livrés en moins de 2 minutes",
-        image: "/image copy 4.png",
-        badge: "Populaire",
-        status: "live",
-      },
-      {
-        id: "ff-pass",
-        title: "Pass Elite & abonnements",
-        subtitle: "Activez vos passes hebdo et mensuels sans friction",
-        image: "/image copy 9.png",
-        status: "live",
-      },
-      {
-        id: "ff-bundle",
-        title: "Packs combo",
-        subtitle: "Diamants + bonus skins avec tarifs négociés",
-        image: "/image copy 8.png",
-        status: "live",
-      },
-    ],
-  },
-  {
-    id: "pubg",
-    name: "PUBG Mobile",
-    slug: "pubg",
-    cards: [
-      {
-        id: "pubg-uc",
-        title: "UC instantané",
-        subtitle: "Codes globaux officiels, livraison immédiate",
-        image: "/image copy 10.png",
-        badge: "Populaire",
-        status: "live",
-      },
-      {
-        id: "pubg-pass",
-        title: "Royale Pass prêt",
-        subtitle: "Rechargez la prochaine saison sans attente",
-        image: "/image copy 11.png",
-        status: "live",
-      },
-      {
-        id: "pubg-bundle",
-        title: "Packs duo",
-        subtitle: "UC + skins exclusifs en un clic",
-        image: "/image copy 12.png",
-        status: "soon",
-      },
-    ],
-  },
-  {
-    id: "fortnite",
-    name: "Fortnite",
-    cards: [
-      {
-        id: "fnt-vbucks",
-        title: "V-Bucks synchronisés",
-        subtitle: "Top-up multi-plateforme avec suivi automatique",
-        image: "/image copy 7.png",
-        badge: "Populaire",
-        status: "soon",
-      },
-      {
-        id: "fnt-pack",
-        title: "Packs cosmétiques",
-        subtitle: "Bundles exclusifs prêts à être livrés",
-        image: "/image copy 6.png",
-        status: "soon",
-      },
-    ],
-  },
-  {
-    id: "codm",
-    name: "Call of Duty Mobile",
-    cards: [
-      {
-        id: "cod-credit",
-        title: "CP officiels",
-        subtitle: "Top-up premium avec double vérification",
-        image: "/image copy 5.png",
-        badge: "Populaire",
-        status: "soon",
-      },
-      {
-        id: "cod-bundle",
-        title: "Bundles événements",
-        subtitle: "Précommandez les prochains events limités",
-        image: "/image copy 3.png",
-        status: "soon",
-      },
-    ],
   },
 ];
 
@@ -806,30 +699,13 @@ const page: Page =
     setIsMenuOpen(false);
   };
 
-  const openCart = () => setIsCartOpen(true);
-  const closeCart = () => setIsCartOpen(false);
-
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const body = document.body;
-    if (isCartOpen) {
-      body.classList.add("cart-open");
-    } else {
-      body.classList.remove("cart-open");
-    }
-    return () => body.classList.remove("cart-open");
-  }, [isCartOpen]);
-
-  useEffect(() => {
-    if (!isCartOpen || typeof document === "undefined") return;
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsCartOpen(false);
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isCartOpen]);
+  const openCartWithScroll = () => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.setTimeout(() => {
+      setIsCartOpen(true);
+    }, 400);
+  };
 
   useEffect(() => {
     const elements = Array.from(document.querySelectorAll(".reveal"));
@@ -895,7 +771,7 @@ const page: Page =
             <button
               className={`btn cart-btn ${cartBump ? "bump" : ""}`}
               type="button"
-              onClick={openCart}
+              onClick={openCartWithScroll}
               ref={cartButtonRef}
               aria-label="Ouvrir le panier"
             >
@@ -1017,7 +893,7 @@ const page: Page =
               className="mobile-menu-link"
               type="button"
               onClick={() => {
-                openCart();
+                openCartWithScroll();
                 setIsMenuOpen(false);
               }}
             >
@@ -1070,59 +946,49 @@ const page: Page =
               <h2>Nos jeux populaires</h2>
               <p>Rechargez vos jeux favoris avec des credits officiels.</p>
             </div>
-            <div className="popular-games">
-              {popularGameSections.map((section) => (
-                <article className="popular-game-block" key={section.id}>
-                  <div className="popular-game-head">
-                    <div>
-                      <p className="popular-game-kicker">Recharge officielle</p>
-                      <h3>{section.name}</h3>
-                    </div>
-                    <span className="popular-game-instruction">Swipe ↔</span>
+            <div className="game-grid">
+              {games.map((game) => (
+                <article className={`game-card game-${game.theme} ${game.id === "free-fire" || game.id === "pubg" ? "popular" : ""} reveal`} key={game.id}>
+                  <div className="game-art" aria-hidden>
+                    {game.id === "free-fire" ? (
+                      <img src="/image copy 4.png" alt={game.name} loading="lazy" />
+                    ) : (
+                      <span>{game.name}</span>
+                    )}
                   </div>
-                  <div
-                    className="popular-game-track"
-                    role="list"
-                    aria-label={`Offres ${section.name}`}
-                  >
-                    {section.cards.map((card) => {
-                      const canExplore = card.status === "live" && Boolean(section.slug);
-                      return (
-                        <article
-                          className="popular-game-card"
-                          data-theme={section.id}
-                          key={card.id}
-                          role="listitem"
-                        >
-                          {card.badge && (
-                            <span className="popular-card-badge">{card.badge}</span>
-                          )}
-                          <div className="popular-card-media">
-                            <img
-                              src={card.image}
-                              alt={`${section.name} ${card.title}`}
-                              loading="lazy"
-                            />
-                          </div>
-                          <div className="popular-card-body">
-                            <span className="popular-card-game">{section.name}</span>
-                            <h4>{card.title}</h4>
-                            <p className="popular-card-meta">{card.subtitle}</p>
-                            <button
-                              className="popular-card-cta"
-                              type="button"
-                              disabled={!canExplore}
-                              onClick={() => {
-                                if (!canExplore || !section.slug) return;
-                                navigate(section.slug);
-                              }}
-                            >
-                              {canExplore ? "Explorer" : "Prochainement"}
-                            </button>
-                          </div>
-                        </article>
-                      );
-                    })}
+                  <div className="game-info">
+                    <h3>{game.name}</h3>
+                    {/* BOUTON VERS LIBRE-FEU */}
+                    {game.id === "free-fire" && (
+                      <button
+                        className="btn btn-primary"
+                        type="button"
+                        onClick={() => navigate("free-fire")}
+                      >
+                        Explorer
+                      </button>
+                    )}
+                    {/* BOUTON VERS PUBG */}
+                    {game.id === "pubg" && (
+                      <button
+                        className="btn btn-primary"
+                        type="button"
+                        onClick={() => navigate("pubg")}
+                      >
+                        Explorer
+                      </button>
+                    )}
+                    {/* AUTRES JEUX - DÉSACTIVÉ */}
+                    {game.id !== "free-fire" && game.id !== "pubg" && (
+                      <button
+                        className="btn btn-primary"
+                        type="button"
+                        disabled
+                        title="Prochainement disponible"
+                      >
+                        Prochainement
+                      </button>
+                    )}
                   </div>
                 </article>
               ))}
@@ -1355,7 +1221,7 @@ const page: Page =
                 </div>
               </div>
               <div className="account-actions">
-                <button className="btn btn-ghost" type="button" onClick={openCart}>
+                <button className="btn btn-ghost" type="button" onClick={openCartWithScroll}>
                   Voir panier
                 </button>
                 <button className="btn btn-primary" type="button" onClick={handleLogout}>
@@ -1588,12 +1454,9 @@ const page: Page =
         </div>
       </footer>
       {isCartOpen && (
-        <div className="cart-overlay" role="presentation" onClick={closeCart}>
+        <div className="cart-overlay" onClick={() => setIsCartOpen(false)}>
           <aside
             className="cart-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Panier"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="cart-header">
@@ -1603,11 +1466,10 @@ const page: Page =
               </div>
               <button
                 type="button"
-                className="cart-close-btn"
-                aria-label="Fermer le panier"
-                onClick={closeCart}
+                className="link-btn"
+                onClick={() => setIsCartOpen(false)}
               >
-                <span aria-hidden>✕</span>
+                Fermer
               </button>
             </div>
             <div className="cart-body">
