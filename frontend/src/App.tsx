@@ -984,65 +984,45 @@ const page: Page =
         )}
 
         {page === "home" && (
-          <section id="games" className="section reveal">
-            <div className="section-head">
-              <h2>Nos jeux populaires</h2>
-              <p>Rechargez vos jeux favoris avec des credits officiels.</p>
-            </div>
-            <div className="game-grid">
-              {games.map((game) => (
-                <article
-                  className={`game-card game-${game.theme} ${game.id === "free-fire" || game.id === "pubg" ? "popular" : ""} reveal`}
-                  key={game.id}
-                >
-                  {/* Badge visuel pour les jeux mis en avant */}
-                  {(game.id === "free-fire" || game.id === "pubg") && (
-                    <span className="game-badge">Populaire</span>
-                  )}
-                  <div className="game-art" aria-hidden>
-                    {game.id === "free-fire" ? (
-                      <img src="/image copy 4.png" alt={game.name} loading="lazy" />
-                    ) : (
-                      <span>{game.name}</span>
-                    )}
-                  </div>
-                  <div className="game-info">
+          <section id="games" className="popular-games reveal">
+            {/* Titre + sous-titre de la section */}
+            <h2>Nos jeux populaires</h2>
+            <p>Rechargez vos jeux favoris avec des credits officiels.</p>
+
+            <div className="games-row">
+              {/* CARTE JEU */}
+              {games.map((game) => {
+                const isPopular = game.id === "free-fire" || game.id === "pubg";
+                const imageById: Record<string, string> = {
+                  "free-fire": "/image copy 4.png",
+                  pubg: "/image copy 13.png",
+                  fortnite: "/image copy 10.png",
+                  codm: "/image copy 12.png",
+                };
+                const gameImage = imageById[game.id] ?? "/image.png";
+
+                return (
+                  <div className={`game-card ${isPopular ? "popular" : ""} reveal`} key={game.id}>
+                    {isPopular && <span className="game-badge">Populaire</span>}
+                    <img src={gameImage} alt={game.name} loading="lazy" />
                     <h3>{game.name}</h3>
-                    <p className="game-meta">Recharge instantanee • Credits officiels</p>
-                    {/* BOUTON VERS LIBRE-FEU */}
+                    <span className="game-subtext">Credits officiels</span>
+
+                    {/* Bouton gradient : actif seulement si la page existe */}
                     {game.id === "free-fire" && (
-                      <button
-                        className="btn btn-primary"
-                        type="button"
-                        onClick={() => navigate("free-fire")}
-                      >
-                        Explorer
-                      </button>
+                      <button type="button" onClick={() => navigate("free-fire")}>Explorer</button>
                     )}
-                    {/* BOUTON VERS PUBG */}
                     {game.id === "pubg" && (
-                      <button
-                        className="btn btn-primary"
-                        type="button"
-                        onClick={() => navigate("pubg")}
-                      >
-                        Explorer
-                      </button>
+                      <button type="button" onClick={() => navigate("pubg")}>Explorer</button>
                     )}
-                    {/* AUTRES JEUX - DÉSACTIVÉ */}
                     {game.id !== "free-fire" && game.id !== "pubg" && (
-                      <button
-                        className="btn btn-primary"
-                        type="button"
-                        disabled
-                        title="Prochainement disponible"
-                      >
+                      <button type="button" disabled title="Prochainement disponible">
                         Prochainement
                       </button>
                     )}
                   </div>
-                </article>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
