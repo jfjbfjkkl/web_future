@@ -71,11 +71,16 @@ type GameCard = {
   price: number;
 };
 
+type GiftCardBadge = "Populaire" | "Promo" | "Nouveau";
+
 type GiftCard = {
   id: string;
   name: string;
   priceRange: string;
+  startingPrice: number;
   image: string;
+  description: string;
+  badge?: GiftCardBadge;
 };
 
 const games: GameCard[] = [
@@ -90,31 +95,44 @@ const giftCards: GiftCard[] = [
     id: "google-play",
     name: "Google Play",
     priceRange: "5 000 - 50 000 FCFA",
+    startingPrice: 5000,
     image: "/image copy 2.png",
+    description: "Codes officiels livrés instantanément.",
+    badge: "Populaire",
   },
   {
     id: "apple",
     name: "Apple Gift Card",
     priceRange: "10 000 - 75 000 FCFA",
+    startingPrice: 10000,
     image: "/image copy 5.png",
+    description: "Activez vos achats App Store et iCloud.",
+    badge: "Nouveau",
   },
   {
     id: "steam",
     name: "Steam Wallet",
     priceRange: "5 000 - 60 000 FCFA",
+    startingPrice: 6000,
     image: "/image copy 6.png",
+    description: "Créditez votre portefeuille Steam partout.",
   },
   {
     id: "playstation",
     name: "PlayStation Store",
     priceRange: "10 000 - 80 000 FCFA",
+    startingPrice: 12000,
     image: "/image copy 3.png",
+    description: "Idéal pour PS Plus, jeux et add-ons.",
+    badge: "Promo",
   },
   {
     id: "xbox",
     name: "Xbox Gift Card",
     priceRange: "10 000 - 80 000 FCFA",
+    startingPrice: 12000,
     image: "/image copy 4.png",
+    description: "Rechargez Xbox ou PC Game Pass en 1 clic.",
   },
 ];
 
@@ -125,7 +143,6 @@ type CartItem = {
   quantity: number;
   image?: string;
   game?: string;
-  variant?: string;
 };
 
 type FreeFirePack = {
@@ -157,13 +174,9 @@ type PurchaseEntry = {
   date: string;
 };
 
-type Toast = {
-  id: string;
-  message: string;
-  variant: "success" | "info";
-};
 
-type Page = "home" | "free-fire" | "login" | "account";
+// ===== TYPES DES PAGES DU SITE =====
+type Page = "home" | "free-fire" | "pubg" | "login" | "account";
 
 const formatPrice = (value: number) =>
   `${value.toLocaleString("fr-FR")} FCFA`;
@@ -201,9 +214,8 @@ const freeFireSubs: FreeFireSub[] = [
 
 const USERS_STORAGE_KEY = "nexy_users";
 const SESSION_STORAGE_KEY = "nexy_session";
-const CART_SESSION_KEY = "nexy_cart_session";
+const CART_STORAGE_KEY = "nexy_cart";
 const purchasesKeyFor = (email: string) => `nexy_purchases_${email}`;
-const cartKeyForUser = (email: string) => `nexy_cart_${email}`;
 
 const safeParseJSON = <T,>(value: string | null, fallback: T): T => {
   if (!value) return fallback;
@@ -245,63 +257,25 @@ const storePurchases = (email: string, entries: PurchaseEntry[]) => {
   }
 };
 
-const readCartFromStorage = (storage: Storage | null, key: string): CartItem[] => {
-  if (!storage) return [];
-  return safeParseJSON<CartItem[]>(storage.getItem(key), []);
-};
-
-const readCartForUser = (user: StoredUser | null): CartItem[] => {
+const readStoredCart = (): CartItem[] => {
   if (typeof window === "undefined") return [];
-  if (!user) {
-    return readCartFromStorage(sessionStorage, CART_SESSION_KEY);
-  }
-  return readCartFromStorage(localStorage, cartKeyForUser(user.email));
+  return safeParseJSON<CartItem[]>(localStorage.getItem(CART_STORAGE_KEY), []);
 };
 
-const storeCartForUser = (user: StoredUser | null, items: CartItem[]) => {
+const storeCart = (items: CartItem[]) => {
   if (typeof window === "undefined") return;
   try {
-    if (!user) {
-      sessionStorage.setItem(CART_SESSION_KEY, JSON.stringify(items));
-      return;
-    }
-    localStorage.setItem(cartKeyForUser(user.email), JSON.stringify(items));
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   } catch {
     // ignore storage errors
   }
 };
 
-const clearGuestCart = () => {
-  if (typeof window === "undefined") return;
-  try {
-    sessionStorage.removeItem(CART_SESSION_KEY);
-  } catch {
-    // ignore
-  }
-};
-
-const mergeCartItems = (base: CartItem[], incoming: CartItem[]) => {
-  const merged = new Map<string, CartItem>();
-
-  base.forEach((item) => merged.set(item.id, { ...item }));
-  incoming.forEach((item) => {
-    const existing = merged.get(item.id);
-    if (existing) {
-      merged.set(item.id, {
-        ...existing,
-        quantity: existing.quantity + item.quantity,
-      });
-      return;
-    }
-    merged.set(item.id, { ...item });
-  });
-
-  return Array.from(merged.values());
-};
-
+// ===== NAVIGATION: ROUTES =====
 const ROUTE_MAP: Record<Page, string> = {
   home: "/",
   "free-fire": "/free-fire",
+  pubg: "/pubg",
   login: "/login",
   account: "/mon-compte",
 };
@@ -317,20 +291,22 @@ const HERO_SLIDES = [
   "/image copy 12.png",
 ];
 
-const TOAST_DURATION_MS = 2500;
-
 function App() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const page: Page =
-    pathname === "/free-fire"
-      ? "free-fire"
-      : pathname === "/login"
-      ? "login"
-      : pathname === "/mon-compte"
-      ? "account"
-      : "home";
+ // ===== DETECTION PAGE ACTIVE =====
+const page: Page =
+  pathname === "/free-fire"
+    ? "free-fire"
+    : pathname === "/pubg"
+    ? "pubg"
+    : pathname === "/login"
+    ? "login"
+    : pathname === "/mon-compte"
+    ? "account"
+    : "home";
+
 
   const initialAuthStateRef = useRef(getInitialAuthState());
   const [users, setUsers] = useState<StoredUser[]>(initialAuthStateRef.current.storedUsers);
@@ -355,13 +331,9 @@ function App() {
   const [introDone, setIntroDone] = useState(!initialShouldShowIntro);
   const [heroSlideIndex, setHeroSlideIndex] = useState(0);
 
-  const [cart, setCart] = useState<CartItem[]>(() =>
-    readCartForUser(initialAuthStateRef.current.sessionUser)
-  );
+  const [cart, setCart] = useState<CartItem[]>(() => readStoredCart());
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartBump, setCartBump] = useState(false);
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const [qtyPulseId, setQtyPulseId] = useState<string | null>(null);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [registerName, setRegisterName] = useState("");
@@ -370,8 +342,6 @@ function App() {
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authError, setAuthError] = useState<string | null>(null);
   const cartButtonRef = useRef<HTMLButtonElement | null>(null);
-  const cartDrawerRef = useRef<HTMLElement | null>(null);
-  const qtyPulseTimerRef = useRef<number | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const isAuthenticated = Boolean(authUser);
@@ -413,14 +383,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const body = document.body;
-    if (!body) return;
-    body.classList.remove("page-transition");
-    void body.offsetWidth;
-    body.classList.add("page-transition");
-  }, [pathname]);
-
-  useEffect(() => {
     if (!authUser) {
       setPurchaseHistory([]);
       return;
@@ -429,26 +391,8 @@ function App() {
   }, [authUser]);
 
   useEffect(() => {
-    storeCartForUser(authUser, cart);
-  }, [cart, authUser]);
-
-  useEffect(() => {
-    if (!isCartOpen) return;
-
-    const body = document.body;
-    const previousOverflow = body.style.overflow;
-    body.style.overflow = "hidden";
-    body.classList.add("cart-open");
-
-    window.setTimeout(() => {
-      cartDrawerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 30);
-
-    return () => {
-      body.style.overflow = previousOverflow;
-      body.classList.remove("cart-open");
-    };
-  }, [isCartOpen]);
+    storeCart(cart);
+  }, [cart]);
 
   useEffect(() => {
     if (!isProfileMenuOpen) return;
@@ -487,66 +431,6 @@ function App() {
   }, [pathname, authUser, router]);
 
   useEffect(() => {
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
-
-    const media = window.matchMedia?.("(max-width: 768px)");
-    if (!media?.matches) return;
-
-    const rows = Array.from(
-      document.querySelectorAll<HTMLElement>(".product-scroll-row, .diamond-row")
-    );
-    if (rows.length === 0) return;
-
-    const timerMap = new WeakMap<HTMLElement, number>();
-    const handlers = new Map<HTMLElement, () => void>();
-
-    rows.forEach((row) => {
-      const handler = () => {
-        row
-          .querySelectorAll<HTMLElement>(
-            ".store-card, .product-card, .diamond-card"
-          )
-          .forEach((card) => {
-            card.style.transform = "scale(0.97)";
-          });
-
-        const existingTimer = timerMap.get(row);
-        if (existingTimer) {
-          window.clearTimeout(existingTimer);
-        }
-
-        const timer = window.setTimeout(() => {
-          row
-            .querySelectorAll<HTMLElement>(
-              ".store-card, .product-card, .diamond-card"
-            )
-            .forEach((card) => {
-              card.style.transform = "scale(1)";
-            });
-        }, 120);
-
-        timerMap.set(row, timer);
-      };
-
-      row.addEventListener("scroll", handler, { passive: true });
-      handlers.set(row, handler);
-    });
-
-    return () => {
-      rows.forEach((row) => {
-        const handler = handlers.get(row);
-        if (handler) {
-          row.removeEventListener("scroll", handler);
-        }
-        const timer = timerMap.get(row);
-        if (timer) {
-          window.clearTimeout(timer);
-        }
-      });
-    };
-  }, []);
-
-  useEffect(() => {
     setIsProfileMenuOpen(false);
   }, [authUser, pathname]);
 
@@ -574,13 +458,10 @@ function App() {
   };
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartSubtotal = cart.reduce(
+  const cartTotal = cart.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
-  const cartTaxes = 0;
-  const cartServiceFee = 0;
-  const cartTotal = cartSubtotal + cartTaxes + cartServiceFee;
   const accountInitial = authUser?.name?.trim()?.charAt(0).toUpperCase() ?? "N";
 
   const triggerCartPulse = () => {
@@ -588,14 +469,7 @@ function App() {
     window.setTimeout(() => setCartBump(false), 350);
   };
 
-  const addToCart = (item: {
-    id: string;
-    name: string;
-    price: number;
-    image?: string;
-    game?: string;
-    variant?: string;
-  }) => {
+  const addToCart = (item: { id: string; name: string; price: number; image?: string; game?: string }) => {
     setCart((prev) => {
       const existing = prev.find((entry) => entry.id === item.id);
       if (existing) {
@@ -607,32 +481,16 @@ function App() {
       }
       return [...prev, { ...item, quantity: 1 }];
     });
-    pushToast("Produit ajoute au panier");
   };
 
   const updateCartQuantity = (id: string, delta: number) => {
-    let didChange = false;
     setCart((prev) =>
-      prev.map((entry) => {
-        if (entry.id !== id) return entry;
-        const nextQuantity = Math.max(1, entry.quantity + delta);
-        if (nextQuantity !== entry.quantity) {
-          didChange = true;
-        }
-        return { ...entry, quantity: nextQuantity };
-      })
+      prev.map((entry) =>
+        entry.id === id
+          ? { ...entry, quantity: Math.max(1, entry.quantity + delta) }
+          : entry
+      )
     );
-
-    if (!didChange) return;
-
-    setQtyPulseId(id);
-    if (qtyPulseTimerRef.current) {
-      window.clearTimeout(qtyPulseTimerRef.current);
-    }
-    qtyPulseTimerRef.current = window.setTimeout(() => {
-      setQtyPulseId(null);
-    }, 220);
-    pushToast("Quantite mise a jour", "info");
   };
 
   const animateToCart = (sourceImage: HTMLImageElement | null) => {
@@ -687,7 +545,7 @@ function App() {
 
   const handleBuyClick = (
     event: MouseEvent<HTMLButtonElement>,
-    item: { id: string; name: string; price: number; game?: string; variant?: string }
+    item: { id: string; name: string; price: number; game?: string }
   ) => {
     const card = event.currentTarget.closest(".freefire-card");
     const image = card?.querySelector(".freefire-image img") as HTMLImageElement | null;
@@ -701,29 +559,9 @@ function App() {
 
   const removeFromCart = (id: string) => {
     setCart((prev) => prev.filter((entry) => entry.id !== id));
-    pushToast("Produit retire du panier");
-  };
-
-  const pushToast = (message: string, variant: "success" | "info" = "success") => {
-    if (typeof window === "undefined") return;
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    setToasts((prev) => [...prev, { id, message, variant }]);
-    window.setTimeout(() => {
-      setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, TOAST_DURATION_MS);
   };
 
   const finishAuth = (user: StoredUser) => {
-    const guestCart = readCartForUser(null);
-    const userCart = readCartForUser(user);
-    const mergedCart = mergeCartItems(userCart, guestCart);
-
-    setCart(mergedCart);
-    storeCartForUser(user, mergedCart);
-    if (guestCart.length > 0) {
-      clearGuestCart();
-    }
-
     setAuthUser(user);
     setAuthModeWithReset("login");
     try {
@@ -810,8 +648,6 @@ function App() {
     } catch {
       // ignore
     }
-    clearGuestCart();
-    setCart([]);
     setIsCartOpen(false);
     setAuthModeWithReset("login");
     navigate("login");
@@ -865,7 +701,10 @@ function App() {
 
   const openCartWithScroll = () => {
     if (typeof window === "undefined") return;
-    setIsCartOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.setTimeout(() => {
+      setIsCartOpen(true);
+    }, 400);
   };
 
   useEffect(() => {
@@ -928,6 +767,7 @@ function App() {
               <span />
               <span />
             </button>
+            {/* Bouton panier: reste relatif pour accrocher le badge */}
             <button
               className={`btn cart-btn ${cartBump ? "bump" : ""}`}
               type="button"
@@ -947,6 +787,7 @@ function App() {
                   <circle cx="17" cy="19" r="1.5" fill="currentColor" />
                 </svg>
               </span>
+              {/* Badge rouge qui déborde seulement si le panier contient des articles */}
               {cartCount > 0 && (
                 <span className={`cart-count ${cartBump ? "bump" : ""}`}>
                   {cartCount}
@@ -1105,12 +946,9 @@ function App() {
               <h2>Nos jeux populaires</h2>
               <p>Rechargez vos jeux favoris avec des credits officiels.</p>
             </div>
-            <div className="product-row product-scroll-row">
+            <div className="game-grid">
               {games.map((game) => (
-                <article
-                  className={`store-card game-card game-${game.theme} reveal`}
-                  key={game.id}
-                >
+                <article className={`game-card game-${game.theme} ${game.id === "free-fire" || game.id === "pubg" ? "popular" : ""} reveal`} key={game.id}>
                   <div className="game-art" aria-hidden>
                     {game.id === "free-fire" ? (
                       <img src="/image copy 4.png" alt={game.name} loading="lazy" />
@@ -1120,14 +958,37 @@ function App() {
                   </div>
                   <div className="game-info">
                     <h3>{game.name}</h3>
-                    <p className="game-subtitle">Credits officiels</p>
-                    <button
-                      className="btn btn-primary"
-                      type="button"
-                      onClick={() => navigate("free-fire")}
-                    >
-                      Rentrer
-                    </button>
+                    {/* BOUTON VERS LIBRE-FEU */}
+                    {game.id === "free-fire" && (
+                      <button
+                        className="btn btn-primary"
+                        type="button"
+                        onClick={() => navigate("free-fire")}
+                      >
+                        Explorer
+                      </button>
+                    )}
+                    {/* BOUTON VERS PUBG */}
+                    {game.id === "pubg" && (
+                      <button
+                        className="btn btn-primary"
+                        type="button"
+                        onClick={() => navigate("pubg")}
+                      >
+                        Explorer
+                      </button>
+                    )}
+                    {/* AUTRES JEUX - DÉSACTIVÉ */}
+                    {game.id !== "free-fire" && game.id !== "pubg" && (
+                      <button
+                        className="btn btn-primary"
+                        type="button"
+                        disabled
+                        title="Prochainement disponible"
+                      >
+                        Prochainement
+                      </button>
+                    )}
                   </div>
                 </article>
               ))}
@@ -1141,26 +1002,53 @@ function App() {
               <h2 className="section-title-gradient">Cartes Cadeaux</h2>
               <p>Offrez des credits instantanes pour toutes les plateformes.</p>
             </div>
-            <div className="product-row product-scroll-row">
+            <div className="gift-grid product-row">
+              {/* CARTE CADEAU = MÊME COMPOSANT PRODUIT QUE FREE FIRE/PUBG */}
               {giftCards.map((card, index) => (
                 <article
-                  className="store-card gift-card reveal"
+                  className="freefire-card gift-card reveal"
                   key={card.id}
                   style={{ ["--delay" as any]: `${index * 80}ms` }}
                 >
-                  <img
-                    src={card.image}
-                    alt={card.name}
-                    className="card-img"
-                    loading="lazy"
-                  />
-                  <div className="card-overlay">
-                    <div className="card-text">
-                      <h3>{card.name}</h3>
-                      <p>Cartes cadeaux</p>
+                  {card.badge && (
+                    <span
+                      className={`product-badge ${
+                        card.badge === "Promo"
+                          ? "product-badge-promo"
+                          : card.badge === "Nouveau"
+                            ? "product-badge-new"
+                            : "product-badge-popular"
+                      }`}
+                    >
+                      {card.badge}
+                    </span>
+                  )}
+                  <div className="freefire-card-top">
+                    <span className="freefire-tag">Carte cadeau</span>
+                    <h3>{card.name}</h3>
+                  </div>
+                  <div className="freefire-image gift-card-image">
+                    <img src={card.image} alt={card.name} loading="lazy" />
+                  </div>
+                  <div className="freefire-card-bottom">
+                    <div>
+                      <div className="freefire-price">{formatPrice(card.startingPrice)}</div>
+                      <p className="freefire-meta">{card.priceRange}</p>
+                      <p className="gift-card-note">{card.description}</p>
                     </div>
-                    <button className="enter-btn" type="button">
-                      Rentrer
+                    <button
+                      className="btn freefire-btn"
+                      type="button"
+                      onClick={(event) =>
+                        handleBuyClick(event, {
+                          id: card.id,
+                          name: card.name,
+                          price: card.startingPrice,
+                          game: "Carte cadeau",
+                        })
+                      }
+                    >
+                      Explorer
                     </button>
                   </div>
                 </article>
@@ -1385,7 +1273,27 @@ function App() {
             </section>
           </section>
         )}
+               {/* ===== PAGE PUBG ===== */}
+{page === "pubg" && (
+  <section className="pubg-page">
+    <h2>PUBG Mobile</h2>
+    <p>Page PUBG — tu pourras la personnaliser après</p>
 
+    <div className="freefire-grid">
+      <article className="freefire-card">
+        <div className="freefire-card-top">
+          <span className="freefire-tag">PUBG</span>
+          <h3>UC Pack Exemple</h3>
+        </div>
+
+        <div className="freefire-card-bottom">
+          <button className="btn">Ajouter au panier</button>
+        </div>
+      </article>
+    </div>
+  </section>
+)}
+        {/* PAGE FREE FIRE */}
         {page === "free-fire" && (
           <section className="freefire-page reveal">
             <div className="freefire-banner reveal">
@@ -1423,7 +1331,6 @@ function App() {
                           id: pack.id,
                           name: pack.title,
                           price: pack.price,
-                          variant: "Pack",
                         })
                       }
                     >
@@ -1463,7 +1370,62 @@ function App() {
                           id: sub.id,
                           name: sub.title,
                           price: sub.price,
-                          variant: "Abonnement",
+                        })
+                      }
+                    >
+                      Acheter
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* PAGE PUBG */}
+        {page === "pubg" && (
+          <section className="freefire-page reveal">
+            <div className="freefire-banner reveal">
+              <img src="/image copy 13.png" alt="PUBG" loading="eager" />
+              <div className="freefire-banner-overlay">
+                <h2>PUBG Mobile</h2>
+                <p>Recharge officielle Nexy Shop</p>
+              </div>
+            </div>
+
+            <div className="section-head">
+              <h2>Packs de UC</h2>
+              <p>Packs officiels, livraison instantanee.</p>
+            </div>
+            <div className="freefire-grid freefire-packs">
+              {[
+                { id: "pubg-60", title: "60 UC", price: 800 },
+                { id: "pubg-325", title: "325 UC", price: 3600 },
+                { id: "pubg-660", title: "660 UC", price: 7000 },
+                { id: "pubg-1800", title: "1800 UC", price: 18000 },
+              ].map((pack) => (
+                <article className="freefire-card reveal" key={pack.id}>
+                  <div className="freefire-card-top">
+                    <span className="freefire-tag">Pack</span>
+                    <h3>{pack.title}</h3>
+                  </div>
+                  <div className="freefire-image">
+                    <img src="/image copy 13.png" alt={pack.title} loading="lazy" />
+                  </div>
+                  <div className="freefire-card-bottom">
+                    <div>
+                      <div className="freefire-price">{formatPrice(pack.price)}</div>
+                      <p className="freefire-meta">Chargement instantane</p>
+                    </div>
+                    <button
+                      className="btn freefire-btn"
+                      type="button"
+                      onClick={(event) =>
+                        handleBuyClick(event, {
+                          id: pack.id,
+                          name: pack.title,
+                          price: pack.price,
+                          game: "PUBG Mobile",
                         })
                       }
                     >
@@ -1496,7 +1458,6 @@ function App() {
           <aside
             className="cart-panel"
             onClick={(event) => event.stopPropagation()}
-            ref={cartDrawerRef}
           >
             <div className="cart-header">
               <div>
@@ -1544,12 +1505,8 @@ function App() {
                 </div>
               ) : (
                 <div className="cart-items">
-                  {cart.map((item, index) => (
-                    <div
-                      className={`cart-item ${qtyPulseId === item.id ? "qty-pulse" : ""}`}
-                      key={item.id}
-                      style={{ ["--delay" as any]: `${index * 70}ms` }}
-                    >
+                  {cart.map((item) => (
+                    <div className="cart-item" key={item.id}>
                       <div className="cart-item-media">
                         <img
                           src={item.image ?? "/image.png"}
@@ -1560,9 +1517,7 @@ function App() {
                       <div className="cart-item-info">
                         <div>
                           <strong>{item.name}</strong>
-                          {item.variant && <span>Variant: {item.variant}</span>}
                           <span>{item.game ?? "Nexy Shop"}</span>
-                          <span className="cart-delivery">Livraison instantanee</span>
                         </div>
                         <div className="cart-item-price">{formatPrice(item.price)}</div>
                         <div className="cart-item-actions">
@@ -1623,18 +1578,14 @@ function App() {
               <div className="cart-summary">
                 <div>
                   <span>Sous-total</span>
-                  <strong>{formatPrice(cartSubtotal)}</strong>
+                  <strong>{formatPrice(cartTotal)}</strong>
                 </div>
                 <div>
-                  <span>Taxes</span>
-                  <strong>{formatPrice(cartTaxes)}</strong>
-                </div>
-                <div>
-                  <span>Frais service</span>
-                  <strong>{formatPrice(cartServiceFee)}</strong>
+                  <span>Frais</span>
+                  <strong>{formatPrice(0)}</strong>
                 </div>
                 <div className="cart-total">
-                  <span>Total final</span>
+                  <span>Total</span>
                   <strong>{formatPrice(cartTotal)}</strong>
                 </div>
               </div>
@@ -1645,13 +1596,6 @@ function App() {
           </aside>
         </div>
       )}
-      <div className="toast-region" aria-live="polite" aria-atomic="true">
-        {toasts.map((toast) => (
-          <div key={toast.id} className={`toast toast-${toast.variant}`}>
-            {toast.message}
-          </div>
-        ))}
-      </div>
       <button
         className="floating-shop-btn"
         type="button"

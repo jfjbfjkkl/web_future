@@ -1,3 +1,4 @@
+/* BASE ET RESET */
 * {
   box-sizing: border-box;
 }
@@ -8,6 +9,7 @@ body {
   margin: 0;
 }
 
+/* STYLE GLOBAL */
 body {
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   background-color: #050912;
