@@ -145,30 +145,6 @@ type CartItem = {
   game?: string;
 };
 
-// Petit helper pour afficher les infos critiques par jeu dans le panier
-const getCartItemHints = (game?: string) => {
-  if (!game) return null;
-  const normalized = game.toLowerCase();
-  if (normalized.includes("free fire")) {
-    return { uid: "UID Free Fire requis", region: "Serveur Global" };
-  }
-  if (normalized.includes("pubg")) {
-    return { uid: "ID joueur PUBG requis", region: "Serveur MENA" };
-  }
-  if (normalized.includes("fortnite")) {
-    return { uid: "Epic ID requis" };
-  }
-  if (normalized.includes("call of duty")) {
-    return { uid: "UID CODM requis", region: "Serveur Activision" };
-  }
-  return { uid: `${game} : UID requis` };
-};
-
-const formatCartCountLabel = (count: number) => {
-  if (count <= 0) return "0 article";
-  return `${count} ${count > 1 ? "articles" : "article"}`;
-};
-
 type FreeFirePack = {
   id: string;
   title: string;
@@ -486,7 +462,6 @@ const page: Page =
     (total, item) => total + item.price * item.quantity,
     0
   );
-  const cartCountLabel = formatCartCountLabel(cartCount);
   const accountInitial = authUser?.name?.trim()?.charAt(0).toUpperCase() ?? "N";
 
   const triggerCartPulse = () => {
@@ -724,31 +699,13 @@ const page: Page =
     setIsMenuOpen(false);
   };
 
-  // --- PANIER GLOBAL : ouverture/fermeture sans scroll auto ---
-  const openCart = () => setIsCartOpen(true);
-  const closeCart = () => setIsCartOpen(false);
-
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const body = document.body;
-    if (isCartOpen) {
-      body.classList.add("cart-open");
-    } else {
-      body.classList.remove("cart-open");
-    }
-    return () => body.classList.remove("cart-open");
-  }, [isCartOpen]);
-
-  useEffect(() => {
-    if (!isCartOpen || typeof document === "undefined") return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsCartOpen(false);
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isCartOpen]);
+  const openCartWithScroll = () => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.setTimeout(() => {
+      setIsCartOpen(true);
+    }, 400);
+  };
 
   useEffect(() => {
     const elements = Array.from(document.querySelectorAll(".reveal"));
@@ -814,7 +771,7 @@ const page: Page =
             <button
               className={`btn cart-btn ${cartBump ? "bump" : ""}`}
               type="button"
-              onClick={openCart}
+              onClick={openCartWithScroll}
               ref={cartButtonRef}
               aria-label="Ouvrir le panier"
             >
@@ -936,7 +893,7 @@ const page: Page =
               className="mobile-menu-link"
               type="button"
               onClick={() => {
-                openCart();
+                openCartWithScroll();
                 setIsMenuOpen(false);
               }}
             >
@@ -984,124 +941,57 @@ const page: Page =
         )}
 
         {page === "home" && (
-          <section id="games" className="popular-games reveal">
-            {/* Titre + sous-titre de la section */}
-            <h2>Nos jeux populaires</h2>
-            <p>Rechargez vos jeux favoris avec des credits officiels.</p>
-
-            {/* MOBILE: sous-sections par jeu avec scroll horizontal */}
-            <section className="popular-mobile" aria-label="Jeux populaires mobile">
-              {(
-                [
-                  {
-                    id: "free-fire",
-                    title: "Free Fire",
-                    image: "/image copy 4.png",
-                    cards: [
-                      { id: "free-fire-main", title: "Free Fire", badge: "Populaire", route: "free-fire" },
-                      { id: "free-fire-elite", title: "Free Fire Elite", badge: "", route: null },
-                    ],
-                  },
-                  {
-                    id: "pubg",
-                    title: "PUBG Mobile",
-                    image: "/image copy 13.png",
-                    cards: [
-                      { id: "pubg-main", title: "PUBG Mobile", badge: "Populaire", route: "pubg" },
-                      { id: "pubg-pass", title: "PUBG Pass", badge: "", route: null },
-                    ],
-                  },
-                  {
-                    id: "fortnite",
-                    title: "Fortnite",
-                    image: "/image copy 10.png",
-                    cards: [
-                      { id: "fortnite-main", title: "Fortnite", badge: "", route: null },
-                      { id: "fortnite-crew", title: "Fortnite Crew", badge: "", route: null },
-                    ],
-                  },
-                  {
-                    id: "codm",
-                    title: "Call of Duty Mobile",
-                    image: "/image copy 12.png",
-                    cards: [
-                      { id: "codm-main", title: "COD Mobile", badge: "", route: null },
-                      { id: "codm-battle", title: "Battle Pass", badge: "", route: null },
-                    ],
-                  },
-                ] as Array<{
-                  id: string;
-                  title: string;
-                  image: string;
-                  cards: Array<{ id: string; title: string; badge: string; route: Page | null }>;
-                }>
-              ).map((group) => (
-                <div className="game-group" key={group.id}>
-                  {/* Titre du jeu */}
-                  <h3>{group.title}</h3>
-
-                  {/* Ligne scrollable */}
-                  <div className="game-horizontal-row">
-                    {group.cards.map((card) => (
-                      <div className="mobile-game-card" key={card.id}>
-                        <img src={group.image} alt={card.title} loading="lazy" />
-                        <div className="card-body">
-                          {/* Badge optionnel */}
-                          {card.badge && <span className="badge">{card.badge}</span>}
-                          <h4>{card.title}</h4>
-
-                          {/* Bouton: actif si route, sinon desactive */}
-                          <button
-                            className="btn-explorer"
-                            type="button"
-                            disabled={!card.route}
-                            title={card.route ? "Explorer" : "Prochainement"}
-                            onClick={() => card.route && navigate(card.route)}
-                          >
-                            {card.route ? "Explorer" : "Prochainement"}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+          <section id="games" className="section reveal">
+            <div className="section-head">
+              <h2>Nos jeux populaires</h2>
+              <p>Rechargez vos jeux favoris avec des credits officiels.</p>
+            </div>
+            <div className="game-grid">
+              {games.map((game) => (
+                <article className={`game-card game-${game.theme} ${game.id === "free-fire" || game.id === "pubg" ? "popular" : ""} reveal`} key={game.id}>
+                  <div className="game-art" aria-hidden>
+                    {game.id === "free-fire" ? (
+                      <img src="/image copy 4.png" alt={game.name} loading="lazy" />
+                    ) : (
+                      <span>{game.name}</span>
+                    )}
                   </div>
-                </div>
-              ))}
-            </section>
-
-            <div className="games-row">
-              {/* CARTE JEU */}
-              {games.map((game) => {
-                const isPopular = game.id === "free-fire" || game.id === "pubg";
-                const imageById: Record<string, string> = {
-                  "free-fire": "/image copy 4.png",
-                  pubg: "/image copy 13.png",
-                  fortnite: "/image copy 10.png",
-                  codm: "/image copy 12.png",
-                };
-                const gameImage = imageById[game.id] ?? "/image.png";
-
-                return (
-                  <div className={`game-card ${isPopular ? "popular" : ""} reveal`} key={game.id}>
-                    {isPopular && <span className="game-badge">Populaire</span>}
-                    <img src={gameImage} alt={game.name} loading="lazy" />
+                  <div className="game-info">
                     <h3>{game.name}</h3>
-                    <span className="game-subtext">Credits officiels</span>
-
-                    {/* Bouton gradient : actif seulement si la page existe */}
+                    {/* BOUTON VERS LIBRE-FEU */}
                     {game.id === "free-fire" && (
-                      <button type="button" onClick={() => navigate("free-fire")}>Explorer</button>
+                      <button
+                        className="btn btn-primary"
+                        type="button"
+                        onClick={() => navigate("free-fire")}
+                      >
+                        Explorer
+                      </button>
                     )}
+                    {/* BOUTON VERS PUBG */}
                     {game.id === "pubg" && (
-                      <button type="button" onClick={() => navigate("pubg")}>Explorer</button>
+                      <button
+                        className="btn btn-primary"
+                        type="button"
+                        onClick={() => navigate("pubg")}
+                      >
+                        Explorer
+                      </button>
                     )}
+                    {/* AUTRES JEUX - DÉSACTIVÉ */}
                     {game.id !== "free-fire" && game.id !== "pubg" && (
-                      <button type="button" disabled title="Prochainement disponible">
+                      <button
+                        className="btn btn-primary"
+                        type="button"
+                        disabled
+                        title="Prochainement disponible"
+                      >
                         Prochainement
                       </button>
                     )}
                   </div>
-                );
-              })}
+                </article>
+              ))}
             </div>
           </section>
         )}
@@ -1112,12 +1002,11 @@ const page: Page =
               <h2 className="section-title-gradient">Cartes Cadeaux</h2>
               <p>Offrez des credits instantanes pour toutes les plateformes.</p>
             </div>
-            {/* Ligne cartes cadeaux (mobile: scroll horizontal via CSS) */}
-            <div className="gift-grid gift-row">
-              {/* Cartes cadeaux : style carte bancaire pour un rendu premium */}
+            <div className="gift-grid product-row">
+              {/* CARTE CADEAU = MÊME COMPOSANT PRODUIT QUE FREE FIRE/PUBG */}
               {giftCards.map((card, index) => (
                 <article
-                  className="gift-card-premium gift-card reveal"
+                  className="freefire-card gift-card reveal"
                   key={card.id}
                   style={{ ["--delay" as any]: `${index * 80}ms` }}
                 >
@@ -1134,31 +1023,34 @@ const page: Page =
                       {card.badge}
                     </span>
                   )}
-                  <div className="gift-card-body">
-                    <div className="gift-card-content">
-                      <span className="gift-card-tag">Carte cadeau</span>
-                      <h3>{card.name}</h3>
-                      <p className="gift-card-value">{card.priceRange}</p>
-                      <p className="gift-card-meta">Code officiel • Livraison instantanee</p>
-                    </div>
-                    <div className="gift-card-media">
-                      <img src={card.image} alt={card.name} loading="lazy" />
-                    </div>
+                  <div className="freefire-card-top">
+                    <span className="freefire-tag">Carte cadeau</span>
+                    <h3>{card.name}</h3>
                   </div>
-                  <button
-                    className="btn gift-card-cta"
-                    type="button"
-                    onClick={(event) =>
-                      handleBuyClick(event, {
-                        id: card.id,
-                        name: card.name,
-                        price: card.startingPrice,
-                        game: "Carte cadeau",
-                      })
-                    }
-                  >
-                    Explorer
-                  </button>
+                  <div className="freefire-image gift-card-image">
+                    <img src={card.image} alt={card.name} loading="lazy" />
+                  </div>
+                  <div className="freefire-card-bottom">
+                    <div>
+                      <div className="freefire-price">{formatPrice(card.startingPrice)}</div>
+                      <p className="freefire-meta">{card.priceRange}</p>
+                      <p className="gift-card-note">{card.description}</p>
+                    </div>
+                    <button
+                      className="btn freefire-btn"
+                      type="button"
+                      onClick={(event) =>
+                        handleBuyClick(event, {
+                          id: card.id,
+                          name: card.name,
+                          price: card.startingPrice,
+                          game: "Carte cadeau",
+                        })
+                      }
+                    >
+                      Explorer
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>
@@ -1329,7 +1221,7 @@ const page: Page =
                 </div>
               </div>
               <div className="account-actions">
-                <button className="btn btn-ghost" type="button" onClick={openCart}>
+                <button className="btn btn-ghost" type="button" onClick={openCartWithScroll}>
                   Voir panier
                 </button>
                 <button className="btn btn-primary" type="button" onClick={handleLogout}>
@@ -1562,33 +1454,23 @@ const page: Page =
         </div>
       </footer>
       {isCartOpen && (
-        <div className="cart-overlay" role="presentation" onClick={closeCart}>
-          {/* Panier global : bottom sheet mobile + modale desktop */}
+        <div className="cart-overlay" onClick={() => setIsCartOpen(false)}>
           <aside
             className="cart-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="cartTitle"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="cart-header">
               <div>
                 <p className="cart-kicker">Votre selection</p>
-                <h3 id="cartTitle">Panier</h3>
+                <h3>Panier</h3>
               </div>
-              <div className="cart-header-actions">
-                <p className="cart-count-chip" aria-live="polite">
-                  {cartCountLabel}
-                </p>
-                <button
-                  type="button"
-                  className="cart-close-btn"
-                  aria-label="Fermer le panier"
-                  onClick={closeCart}
-                >
-                  <span aria-hidden>×</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                className="link-btn"
+                onClick={() => setIsCartOpen(false)}
+              >
+                Fermer
+              </button>
             </div>
             <div className="cart-body">
               {cart.length === 0 ? (
@@ -1614,7 +1496,7 @@ const page: Page =
                     className="btn btn-primary"
                     type="button"
                     onClick={() => {
-                      closeCart();
+                      setIsCartOpen(false);
                       handleGamesLink();
                     }}
                   >
@@ -1623,10 +1505,8 @@ const page: Page =
                 </div>
               ) : (
                 <div className="cart-items">
-                  {cart.map((item) => {
-                    const hints = getCartItemHints(item.game);
-                    return (
-                      <div className="cart-item" key={item.id}>
+                  {cart.map((item) => (
+                    <div className="cart-item" key={item.id}>
                       <div className="cart-item-media">
                         <img
                           src={item.image ?? "/image.png"}
@@ -1639,12 +1519,6 @@ const page: Page =
                           <strong>{item.name}</strong>
                           <span>{item.game ?? "Nexy Shop"}</span>
                         </div>
-                        {hints && (
-                          <div className="cart-item-hints">
-                            <span>{hints.uid}</span>
-                            {hints.region && <span>{hints.region}</span>}
-                          </div>
-                        )}
                         <div className="cart-item-price">{formatPrice(item.price)}</div>
                         <div className="cart-item-actions">
                           <div className="cart-qty">
@@ -1696,8 +1570,7 @@ const page: Page =
                         </div>
                       </div>
                     </div>
-                    );
-                  })}
+                  ))}
                 </div>
               )}
             </div>
@@ -1716,21 +1589,9 @@ const page: Page =
                   <strong>{formatPrice(cartTotal)}</strong>
                 </div>
               </div>
-              <div className="cart-footer-actions">
-                <button
-                  className="btn cart-continue"
-                  type="button"
-                  onClick={() => {
-                    closeCart();
-                    handleGamesLink();
-                  }}
-                >
-                  Continuer mes achats
-                </button>
-                <button className="btn btn-primary cart-checkout" type="button" onClick={handleCheckout}>
-                  Passer au paiement
-                </button>
-              </div>
+              <button className="btn btn-primary cart-checkout" type="button" onClick={handleCheckout}>
+                Payer maintenant
+              </button>
             </div>
           </aside>
         </div>

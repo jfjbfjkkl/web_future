@@ -750,32 +750,28 @@ button {
   transform: translateY(0);
 }
 
-/* BOUTON PANIER - icône seule pour un look premium */
+/* BOUTON PANIER */
 .cart-btn {
-  position: relative; /* Support du badge */
+  position: relative; /* Sert de repère pour positionner le badge */
+  overflow: visible; /* Laisse le badge dépasser du bouton */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   padding: 0;
-  background: transparent;
-  border: none;
+  background: rgba(20, 24, 40, 0.9);
+  border: 1px solid rgba(124, 92, 255, 0.35);
   color: #ffffff;
-  cursor: pointer;
-}
-
-/* Taille fixe pour les icones panier (si image PNG/SVG) */
-.header-cart-icon img,
-.cart-icon img {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+  box-shadow: 0 12px 26px rgba(7, 10, 18, 0.55);
 }
 
 .cart-btn:hover {
-  transform: translateY(-1px) scale(1.03);
-  color: #57d4ff;
+  transform: translateY(-1px) scale(1.05);
+  box-shadow:
+    0 16px 30px rgba(7, 10, 18, 0.6),
+    0 0 18px rgba(124, 92, 255, 0.45);
+  filter: brightness(1.05);
 }
 
 .cart-btn.bump {
@@ -783,8 +779,8 @@ button {
 }
 
 .cart-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -796,9 +792,10 @@ button {
 }
 
 .cart-count {
-  position: absolute;
-  top: -6px;
-  right: -10px;
+  position: absolute; /* Badge détaché du flux */
+  top: 0;
+  right: 0;
+  transform: translate(40%, -40%); /* Le fait déborder en haut à droite */
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -885,79 +882,42 @@ button {
   transform: scale(0.96);
 }
 
-/* PANIER GLOBAL : overlay sombre + modale centrée */
+/* PANIER */
 .cart-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(4, 6, 14, 0.78);
+  background: rgba(7, 10, 20, 0.65);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   padding: 24px;
-  z-index: 200;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  animation: cartOverlayFade 0.25s ease-out;
+  z-index: 50;
+  animation: cartOverlayFade 0.3s ease-out;
 }
 
 .cart-panel {
-  position: relative;
-  width: min(520px, 92vw);
-  max-height: min(90vh, 640px);
-  background: rgba(10, 14, 26, 0.96);
-  border-radius: 26px;
-  padding: 24px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  height: 100vh;
+  background: rgba(10, 14, 26, 0.98);
+  border-radius: 20px 0 0 20px;
+  padding: 22px;
   border: 1px solid rgba(124, 92, 255, 0.35);
   box-shadow:
-    0 36px 80px rgba(0, 0, 0, 0.65),
+    0 28px 60px rgba(0, 0, 0, 0.65),
     0 0 24px rgba(124, 92, 255, 0.25);
   display: flex;
   flex-direction: column;
   gap: 16px;
-  animation: cartModalIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  transform-origin: center;
-  overflow: hidden;
-}
-
-/* Mise en avant des packs populaires */
-.popular-games .game-card.popular {
-  border-color: rgba(255, 140, 120, 0.55);
-  box-shadow:
-    0 16px 36px rgba(255, 120, 90, 0.25),
-    0 0 18px rgba(255, 120, 90, 0.2);
+  transform: translateX(100%);
+  animation: cartPanelIn 0.3s ease-out forwards;
 }
 
 .cart-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-}
-
-.cart-header-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.cart-close-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid rgba(124, 92, 255, 0.35);
-  background: rgba(12, 16, 30, 0.9);
-  color: #ffffff;
-  font-size: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.cart-close-btn:hover {
-  transform: translateY(-1px) scale(1.05);
-  box-shadow: 0 0 14px rgba(124, 92, 255, 0.4);
 }
 
 .cart-kicker {
@@ -973,20 +933,10 @@ button {
   font-size: 20px;
 }
 
-.cart-count-chip {
-  margin: 0;
-  font-size: 12px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(87, 212, 255, 0.12);
-  border: 1px solid rgba(87, 212, 255, 0.35);
-  color: #c7f3ff;
-}
-
 .cart-body {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1042,21 +992,6 @@ button {
 .cart-item-info {
   display: grid;
   gap: 8px;
-}
-
-.cart-item-hints {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  font-size: 11px;
-  color: rgba(87, 212, 255, 0.85);
-}
-
-.cart-item-hints span {
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(87, 212, 255, 0.35);
-  background: rgba(6, 16, 30, 0.8);
 }
 
 .cart-item-info strong {
@@ -1203,23 +1138,6 @@ button {
   gap: 12px;
 }
 
-.cart-footer-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.cart-continue {
-  background: rgba(255, 255, 255, 0.06);
-  color: #eaeaea;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.cart-continue:hover {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
-}
-
 .cart-summary {
   display: grid;
   gap: 8px;
@@ -1281,25 +1199,14 @@ button {
   }
 }
 
-@keyframes cartModalIn {
+@keyframes cartPanelIn {
   from {
     opacity: 0;
-    transform: scale(0.94) translateY(8px);
+    transform: translateX(100%);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes cartSheetIn {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -1903,54 +1810,42 @@ button {
   border-radius: 10px;
 }
 
-/* SECTION JEUX POPULAIRES - cartes premium */
-.popular-games {
-  margin-top: 40px;
-}
-
-/* MOBILE-ONLY: version compacte (cachee sur desktop) */
-.popular-mobile {
-  display: none;
-}
-
-.popular-games > h2 {
-  margin: 0 0 8px;
-  font-size: clamp(22px, 3vw, 30px);
-}
-
-.popular-games > p {
-  margin: 0 0 16px;
-  color: rgba(234, 234, 234, 0.7);
-}
-
-.games-row {
+/* GRILLE DES CARTES DE JEU */
+.game-grid {
+  margin-top: 24px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
+  gap: 24px;
 }
 
-.popular-games .game-card {
-  background: #0f172a;
-  border-radius: 18px;
+/* CARTE JEU - Conteur principal d'un jeu */
+.game-card {
+  background: linear-gradient(180deg, #1a1f2b, #0f131a);
+  border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(90, 120, 255, 0.2);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border: 1px solid rgba(124, 92, 255, 0.2);
+  /* Transitions fluides pour l'hover */
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform, box-shadow, background;
+  border: 1px solid rgba(124, 92, 255, 0.15);
 }
 
-.popular-games .game-card:hover {
-  transform: translateY(-6px);
-  box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.45),
-    0 0 18px rgba(124, 92, 255, 0.25);
+/* Animation au survol - Élève la carte */
+.game-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 16px 40px rgba(124, 92, 255, 0.35),
+    0 0 30px rgba(87, 212, 255, 0.2);
+  border-color: rgba(124, 92, 255, 0.35);
 }
 
 /* Badge "Populaire" sur les cartes spéciales */
-.popular-games .game-badge {
+.game-card.popular::after {
+  content: "Populaire";
   position: absolute;
   top: 12px;
   right: 12px;
@@ -1965,11 +1860,29 @@ button {
   z-index: 2;
 }
 
-.popular-games .game-card img {
+.game-art {
   width: 100%;
   height: 140px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.game-art span {
+  padding: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.game-card img,
+.game-art img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 14px;
+  object-position: center;
   display: block;
 }
 
@@ -1989,16 +1902,16 @@ button {
   background: linear-gradient(135deg, rgba(255, 164, 94, 0.4), rgba(28, 28, 48, 0.4));
 }
 
-/* Texte et sous-texte */
-.popular-games .game-card h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
+.game-info {
+  display: grid;
+  gap: 6px;
 }
 
-.popular-games .game-card .game-subtext {
-  font-size: 12px;
-  color: rgba(234, 234, 234, 0.75);
+.game-info h3 {
+  font-weight: 700;
+  font-size: 18px;
+  color: #ffffff;
+  margin: 0;
 }
 
 .game-subtitle {
@@ -2007,133 +1920,85 @@ button {
   font-size: 14px;
 }
 
-/* Bouton gradient */
-.popular-games .game-card button {
-  margin-top: 12px;
-  width: 100%;
-  border-radius: 999px;
-  padding: 10px;
-  background: linear-gradient(90deg, #7c8cff, #a855f7);
-  border: none;
+.game-card .btn {
+  background: linear-gradient(135deg, #6aa6ff, #7b5cff);
   color: #ffffff;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, filter 0.2s ease;
-}
-
-.popular-games .game-card button:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.05);
-}
-
-.popular-games .game-card button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* SECTION CARTES CADEAUX - style carte bancaire */
-.gift-grid {
-  margin-top: 20px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 18px;
-}
-
-/* Grille cadeau demandee (base desktop) */
-.gift-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-}
-
-.gift-card-premium {
-  position: relative;
-  background:
-    linear-gradient(140deg, rgba(12, 18, 32, 0.98), rgba(10, 14, 26, 0.92));
-  border-radius: 22px;
-  padding: 16px;
-  border: 1px solid rgba(124, 92, 255, 0.25);
-  box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.55),
-    inset 0 0 24px rgba(87, 212, 255, 0.08);
-  display: grid;
-  gap: 14px;
-  min-height: 200px;
-  overflow: hidden;
-}
-
-.gift-card-premium::after {
-  content: "";
-  position: absolute;
-  inset: -40% 50% auto -30%;
-  height: 160px;
-  background: radial-gradient(circle at center, rgba(124, 92, 255, 0.25), transparent 70%);
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.gift-card-body {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  z-index: 1;
-}
-
-.gift-card-content {
-  display: grid;
-  gap: 6px;
-}
-
-.gift-card-tag {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(87, 212, 255, 0.8);
-}
-
-.gift-card-content h3 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.gift-card-value {
-  margin: 0;
-  font-weight: 700;
-  font-size: 16px;
-  color: #f5f7fb;
-}
-
-.gift-card-meta {
-  margin: 0;
-  font-size: 12px;
-  color: rgba(234, 234, 234, 0.7);
-}
-
-.gift-card-media {
-  width: 96px;
-  height: 64px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
+  padding: 10px 20px;
+  font-weight: 600;
+  border: 1px solid rgba(106, 166, 255, 0.5);
+  width: 100%;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
 }
 
-.gift-card-media img {
+.game-card .btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(120, 160, 255, 0.4);
+  background: linear-gradient(135deg, #7bb8ff, #8b6dff);
+}
+
+/* SECTION CARTES CADEAUX ALIGNÉE SUR LES AUTRES PRODUITS */
+.gift-grid {
+  margin-top: 24px;
+  display: flex;
+  gap: 16px;
+  padding: 8px 4px 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  scroll-padding: 0 18px;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+}
+
+.gift-grid::-webkit-scrollbar {
+  height: 8px;
+}
+
+.gift-grid::-webkit-scrollbar-thumb {
+  background: rgba(120, 140, 255, 0.35);
+  border-radius: 10px;
+}
+
+.gift-card {
+  flex: 0 0 280px;
+  scroll-snap-align: start;
+  min-height: 320px;
+}
+
+.gift-card .freefire-card-bottom {
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.gift-card .freefire-card-bottom > div {
+  flex: 1;
+}
+
+.gift-card .freefire-btn {
+  min-width: 120px;
+  text-align: center;
+}
+
+.gift-card-image {
   width: 100%;
-  height: 100%;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 8px 10px;
+}
+
+.gift-card-image img {
+  width: 100%;
+  max-height: 140px;
   object-fit: contain;
 }
 
-.gift-card-cta {
-  align-self: flex-start;
-  border-radius: 999px;
-  padding: 10px 20px;
-  font-size: 13px;
-  background: linear-gradient(120deg, #7c5cff, #57d4ff);
-  color: #050816;
-  box-shadow: 0 12px 24px rgba(87, 212, 255, 0.3);
+.gift-card-note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: rgba(234, 234, 234, 0.65);
 }
 
 .product-badge {
@@ -2264,18 +2129,6 @@ button {
   }
 }
 
-/* Animation douce pour l'apparition des cartes mobiles */
-@keyframes mobileCardFloat {
-  from {
-    opacity: 0;
-    transform: translate3d(6px, 8px, 0) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
 /* RESPONSIVE */
 @media (max-width: 900px) {
   .header-inner {
@@ -2351,127 +2204,12 @@ button {
     transition: transform 0.25s ease, box-shadow 0.25s ease;
   }
 
-  /* MOBILE - scroll horizontal pour cartes cadeaux */
-  .gift-row {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
+  .gift-grid {
     gap: 12px;
-    padding: 6px 12px 16px;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-x;
+    padding: 6px 2px 14px;
   }
 
-  .gift-card {
-    min-width: 180px;
-    scroll-snap-align: start;
-  }
-
-  /* MOBILE - cache la grille desktop */
-  .popular-games .games-row {
-    display: none;
-  }
-
-  /* MOBILE - section par jeu avec scroll horizontal */
-  .popular-mobile {
-    display: grid;
-    gap: 18px;
-    margin-top: 16px;
-  }
-
-  .popular-mobile .game-group {
-    display: grid;
-    gap: 12px;
-  }
-
-  .popular-mobile .game-group h3 {
-    margin: 0;
-    font-size: 16px;
-    letter-spacing: 0.2px;
-  }
-
-  .game-horizontal-row {
-    display: flex;
-    gap: 14px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    padding-bottom: 6px;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-x;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .game-horizontal-row::-webkit-scrollbar {
-    display: none;
-  }
-
-  .mobile-game-card {
-    min-width: 78%;
-    max-width: 78%;
-    background: linear-gradient(180deg, #0f172a, #020617);
-    border-radius: 18px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-    overflow: hidden;
-    scroll-snap-align: start;
-    transition: transform 0.2s ease;
-    animation: fadeSlide 0.35s ease;
-  }
-
-  .mobile-game-card:active {
-    transform: scale(0.97);
-  }
-
-  .mobile-game-card img {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    display: block;
-  }
-
-  .mobile-game-card .card-body {
-    padding: 12px;
-    display: grid;
-    gap: 8px;
-  }
-
-  .mobile-game-card .badge {
-    display: inline-flex;
-    align-self: flex-start;
-    background: linear-gradient(135deg, #ff6b9d, #ff8a65);
-    color: #ffffff;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    box-shadow: 0 4px 12px rgba(255, 107, 157, 0.35);
-  }
-
-  .mobile-game-card h4 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 700;
-  }
-
-  .btn-explorer {
-    width: 100%;
-    border-radius: 999px;
-    padding: 10px;
-    background: linear-gradient(90deg, #7c8cff, #a855f7);
-    border: none;
-    color: #ffffff;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .btn-explorer:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-
+  .game-grid,
   .features-grid {
     grid-template-columns: 1fr;
   }
@@ -2480,6 +2218,10 @@ button {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+
+  .game-info .btn {
+    width: 100%;
   }
 
   .freefire-card-bottom {
@@ -2495,48 +2237,31 @@ button {
     display: none;
   }
 
-  .cart-overlay {
-    align-items: flex-end;
-    padding: 0;
-  }
-
-  /* PANIER MOBILE - bottom sheet stable */
   .cart-panel {
     position: fixed;
+    bottom: 0;
     left: 0;
     right: 0;
-    bottom: 0;
+    top: auto;
     width: 100%;
-    height: clamp(70vh, 80vh, 85vh);
-    max-height: 85vh;
-    border-radius: 28px 28px 0 0;
-    padding: 20px 20px 24px;
-    z-index: 140;
-    animation: cartSheetIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    transform-origin: bottom center;
+    height: 85vh;
+    border-radius: 20px 20px 0 0;
+    margin-top: 0;
+    transform: translateY(100%);
+    animation: cartSlideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; /* Effet tiroir fluide */
     overflow: hidden;
   }
 
   .cart-footer {
-    position: static;
-    padding-bottom: 4px;
+    position: sticky;
+    bottom: 0;
+    background: rgba(12, 16, 30, 0.98);
+    padding-bottom: 8px;
   }
 
-  .cart-panel .btn,
-  .cart-panel .cart-checkout {
-    width: 100%;
-  }
-}
-
-/* ANIMATION - apparition mobile */
-@keyframes fadeSlide {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+  .cart-overlay {
+    padding: 0;
+    align-items: flex-end;
   }
 }
 
@@ -2558,13 +2283,22 @@ button {
     letter-spacing: 0.24em;
   }
 
-  .popular-games .game-card img {
-    height: 130px;
+  .game-art {
+    height: 140px;
   }
 
-  /* MOBILE - largeur geree par .gift-row */
-  .gift-card-premium {
-    width: auto;
+  .gift-card {
+    flex: 0 0 220px;
+  }
+
+  .gift-card .freefire-card-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .gift-card .btn {
+    width: 100%;
   }
 }
 
@@ -2643,46 +2377,43 @@ button {
     gap: 48px;
   }
 
-  .product-row {
+  .product-row,
+  .gift-grid {
     gap: 14px;
     padding: 6px 6px 18px;
     scroll-snap-type: x mandatory;
     scroll-padding: 0 14px;
   }
 
-  .product-row > * {
+  .product-row > *,
+  .gift-grid > * {
     scroll-snap-align: center;
     flex: 0 0 78%;
     min-width: 78%;
   }
 
-  /* MOBILE - conserve la largeur carte cadeau */
-  .gift-card-premium {
-    width: auto;
-  }
-
   .btn,
   .freefire-btn,
-  .popular-games .game-card button {
+  .game-card .btn {
     min-height: 48px;
     padding: 14px 20px;
     font-size: 15px;
   }
 
   .cart-btn {
-    width: 44px;
-    height: 44px;
+    width: 52px;
+    height: 52px;
   }
 
   .cart-panel {
-    padding: 18px 20px 24px;
+    padding: 18px 20px 26px;
   }
 
   .cart-panel .btn {
     min-height: 52px;
   }
 
-  .popular-games .game-card {
+  .game-card {
     padding: 14px;
     gap: 10px;
     box-shadow:
@@ -2690,7 +2421,7 @@ button {
       0 0 18px rgba(87, 212, 255, 0.2);
   }
 
-  .popular-games .game-card:active {
+  .game-card:active {
     transform: scale(0.985);
   }
 
@@ -2858,6 +2589,16 @@ button {
   }
   to {
     transform: translateX(0);
+  }
+}
+
+/* ANIMATION PANIER MOBILE */
+@keyframes cartSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
   }
 }
 
