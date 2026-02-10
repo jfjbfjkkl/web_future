@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { AnchorHTMLAttributes, FormEvent, MouseEvent } from "react";
 import "./App.css";
+import { useCart } from "./CartContext";
 
 function usePathname() {
   const [pathname, setPathname] = useState(() => window.location.pathname || "/");
@@ -122,15 +123,6 @@ const giftCards: GiftCard[] = [
   },
 ];
 
-type CartItem = {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image?: string;
-  game?: string;
-};
-
 type FreeFirePack = {
   id: string;
   title: string;
@@ -162,7 +154,7 @@ type PurchaseEntry = {
 
 
 // ===== TYPES DES PAGES DU SITE =====
-type Page = "home" | "free-fire" | "pubg" | "login" | "account";
+type Page = "home" | "free-fire" | "pubg" | "login" | "account" | "cart";
 
 const formatPrice = (value: number) =>
   `${value.toLocaleString("fr-FR")} FCFA`;
@@ -200,7 +192,6 @@ const freeFireSubs: FreeFireSub[] = [
 
 const USERS_STORAGE_KEY = "nexy_users";
 const SESSION_STORAGE_KEY = "nexy_session";
-const CART_STORAGE_KEY = "nexy_cart";
 const purchasesKeyFor = (email: string) => `nexy_purchases_${email}`;
 
 const safeParseJSON = <T,>(value: string | null, fallback: T): T => {
@@ -243,20 +234,6 @@ const storePurchases = (email: string, entries: PurchaseEntry[]) => {
   }
 };
 
-const readStoredCart = (): CartItem[] => {
-  if (typeof window === "undefined") return [];
-  return safeParseJSON<CartItem[]>(localStorage.getItem(CART_STORAGE_KEY), []);
-};
-
-const storeCart = (items: CartItem[]) => {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-  } catch {
-    // ignore storage errors
-  }
-};
-
 // ===== NAVIGATION: ROUTES =====
 const ROUTE_MAP: Record<Page, string> = {
   home: "/",
@@ -264,6 +241,7 @@ const ROUTE_MAP: Record<Page, string> = {
   pubg: "/pubg",
   login: "/login",
   account: "/mon-compte",
+  cart: "/cart",
 };
 
 const INTRO_ENABLED = true;
@@ -287,6 +265,8 @@ const page: Page =
     ? "free-fire"
     : pathname === "/pubg"
     ? "pubg"
+    : pathname === "/cart"
+    ? "cart"
     : pathname === "/login"
     ? "login"
     : pathname === "/mon-compte"
@@ -317,8 +297,8 @@ const page: Page =
   const [introDone, setIntroDone] = useState(!initialShouldShowIntro);
   const [heroSlideIndex, setHeroSlideIndex] = useState(0);
 
-  const [cart, setCart] = useState<CartItem[]>(() => readStoredCart());
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  // ===== CONTEXTE PANIER GLOBAL =====
+  const { items: cart, addToCart, removeFromCart, updateQty, clearCart, getTotal } = useCart();
   const [cartBump, setCartBump] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -375,10 +355,6 @@ const page: Page =
     }
     setPurchaseHistory(readPurchases(authUser.email));
   }, [authUser]);
-
-  useEffect(() => {
-    storeCart(cart);
-  }, [cart]);
 
   useEffect(() => {
     if (!isProfileMenuOpen) return;
@@ -444,39 +420,12 @@ const page: Page =
   };
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartTotal = cart.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+  const cartTotal = getTotal();
   const accountInitial = authUser?.name?.trim()?.charAt(0).toUpperCase() ?? "N";
 
   const triggerCartPulse = () => {
     setCartBump(true);
     window.setTimeout(() => setCartBump(false), 350);
-  };
-
-  const addToCart = (item: { id: string; name: string; price: number; image?: string; game?: string }) => {
-    setCart((prev) => {
-      const existing = prev.find((entry) => entry.id === item.id);
-      if (existing) {
-        return prev.map((entry) =>
-          entry.id === item.id
-            ? { ...entry, quantity: entry.quantity + 1 }
-            : entry
-        );
-      }
-      return [...prev, { ...item, quantity: 1 }];
-    });
-  };
-
-  const updateCartQuantity = (id: string, delta: number) => {
-    setCart((prev) =>
-      prev.map((entry) =>
-        entry.id === id
-          ? { ...entry, quantity: Math.max(1, entry.quantity + delta) }
-          : entry
-      )
-    );
   };
 
   const animateToCart = (sourceImage: HTMLImageElement | null) => {
@@ -541,10 +490,6 @@ const page: Page =
       image: image?.src,
       game: item.game ?? "Free Fire",
     });
-  };
-
-  const removeFromCart = (id: string) => {
-    setCart((prev) => prev.filter((entry) => entry.id !== id));
   };
 
   const finishAuth = (user: StoredUser) => {
@@ -634,7 +579,6 @@ const page: Page =
     } catch {
       // ignore
     }
-    setIsCartOpen(false);
     setAuthModeWithReset("login");
     navigate("login");
   };
@@ -654,7 +598,6 @@ const page: Page =
   const handleCheckout = () => {
     if (!cart.length) return;
     if (!authUser) {
-      setIsCartOpen(false);
       setAuthError("Connectez-vous pour finaliser votre achat.");
       goToAuthPage();
       return;
@@ -673,8 +616,7 @@ const page: Page =
     const updatedHistory = [...entries, ...purchaseHistory];
     setPurchaseHistory(updatedHistory);
     storePurchases(authUser.email, updatedHistory);
-    setCart([]);
-    setIsCartOpen(false);
+    clearCart();
   };
 
   const handleGamesLink = () => {
@@ -683,14 +625,6 @@ const page: Page =
       document.getElementById("games")?.scrollIntoView({ behavior: "smooth" });
     }, 50);
     setIsMenuOpen(false);
-  };
-
-  const openCartWithScroll = () => {
-    if (typeof window === "undefined") return;
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    window.setTimeout(() => {
-      setIsCartOpen(true);
-    }, 400);
   };
 
   useEffect(() => {
@@ -757,7 +691,7 @@ const page: Page =
             <button
               className={`btn cart-btn ${cartBump ? "bump" : ""}`}
               type="button"
-              onClick={openCartWithScroll}
+              onClick={() => navigate("cart")}
               ref={cartButtonRef}
               aria-label="Ouvrir le panier"
             >
@@ -878,10 +812,7 @@ const page: Page =
             <button
               className="mobile-menu-link"
               type="button"
-              onClick={() => {
-                openCartWithScroll();
-                setIsMenuOpen(false);
-              }}
+              onClick={() => handleMobileLink("cart")}
             >
               Panier
             </button>
@@ -1182,7 +1113,7 @@ const page: Page =
                 </div>
               </div>
               <div className="account-actions">
-                <button className="btn btn-ghost" type="button" onClick={openCartWithScroll}>
+                <button className="btn btn-ghost" type="button" onClick={() => navigate("cart")}>
                   Voir panier
                 </button>
                 <button className="btn btn-primary" type="button" onClick={handleLogout}>
@@ -1234,6 +1165,126 @@ const page: Page =
             </section>
           </section>
         )}
+
+        {page === "cart" && (
+          <section className="cart-page reveal">
+            {/* ===== PAGE PANIER ===== */}
+            <div className="cart-page-head">
+              <div>
+                <h2>Panier</h2>
+                <p>Revoyez vos articles avant paiement.</p>
+              </div>
+              <button
+                className="btn btn-ghost"
+                type="button"
+                onClick={clearCart}
+                disabled={!cart.length}
+              >
+                Vider
+              </button>
+            </div>
+
+            <div className="cart-layout">
+              <div className="cart-list">
+                {cart.length === 0 ? (
+                  <div className="cart-empty">
+                    <p>Votre panier est vide.</p>
+                    <button className="btn btn-primary" type="button" onClick={() => navigate("home")}>
+                      Voir les jeux
+                    </button>
+                  </div>
+                ) : (
+                  cart.map((item) => (
+                    <article className="cart-card" key={item.id}>
+                      {/* CARTE PRODUIT */}
+                      <div className="cart-card-media">
+                        <img
+                          src={item.image ?? "/image.png"}
+                          alt={item.name}
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="cart-card-body">
+                        <div className="cart-card-top">
+                          <div>
+                            <h3>{item.name}</h3>
+                            <span>{item.game ?? "Nexy Shop"}</span>
+                          </div>
+                          <button
+                            className="cart-remove-btn"
+                            type="button"
+                            onClick={() => removeFromCart(item.id)}
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                        <div className="cart-card-bottom">
+                          {/* BOUTONS QUANTITE */}
+                          <div className="cart-qty-controls">
+                            <button
+                              type="button"
+                              onClick={() => updateQty(item.id, -1)}
+                              aria-label="Retirer une quantite"
+                            >
+                              -
+                            </button>
+                            <span>{item.quantity}</span>
+                            <button
+                              type="button"
+                              onClick={() => updateQty(item.id, 1)}
+                              aria-label="Ajouter une quantite"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <div className="cart-line-price">
+                            <span>{formatPrice(item.price)}</span>
+                            <strong>{formatPrice(item.price * item.quantity)}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+
+              <aside className="cart-summary-panel">
+                <h3>Resume</h3>
+                <div className="cart-summary-row">
+                  <span>Sous-total</span>
+                  <strong>{formatPrice(cartTotal)}</strong>
+                </div>
+                <div className="cart-summary-row">
+                  <span>Frais</span>
+                  <strong>{formatPrice(0)}</strong>
+                </div>
+                <div className="cart-summary-total">
+                  <span>Total</span>
+                  <strong>{formatPrice(cartTotal)}</strong>
+                </div>
+                <button
+                  className="btn btn-primary cart-pay-btn"
+                  type="button"
+                  onClick={handleCheckout}
+                  disabled={!cart.length}
+                >
+                  PAYER
+                </button>
+              </aside>
+            </div>
+
+            <div className="cart-checkout-sticky">
+              <button
+                className="btn btn-primary cart-pay-btn"
+                type="button"
+                onClick={handleCheckout}
+                disabled={!cart.length}
+              >
+                PAYER
+              </button>
+            </div>
+          </section>
+        )}
                {/* ===== PAGE PUBG ===== */}
 {page === "pubg" && (
   <section className="pubg-page">
@@ -1258,7 +1309,8 @@ const page: Page =
         {page === "free-fire" && (
           <section className="freefire-page reveal">
             <div className="freefire-banner reveal">
-              <img src="/image copy.png" alt="Free Fire" loading="eager" />
+              {/* ===== BANNIERE FREE FIRE ===== */}
+              <img src="/image copy 18.png" alt="Free Fire Banner" loading="eager" />
               <div className="freefire-banner-overlay">
                 <h2>Free Fire</h2>
                 <p>Recharge officielle Nexy Shop</p>
@@ -1277,6 +1329,7 @@ const page: Page =
                     <h3>{pack.title}</h3>
                   </div>
                   <div className="freefire-image">
+                    {/* ===== IMAGE PRODUIT PACK ===== */}
                     <img src="/image.png" alt={pack.title} loading="lazy" />
                   </div>
                   <div className="freefire-card-bottom">
@@ -1314,6 +1367,7 @@ const page: Page =
                     <h3>{sub.title}</h3>
                   </div>
                   <div className="freefire-image">
+                    {/* ===== IMAGE PRODUIT PACK ===== */}
                     <img src="/image.png" alt={sub.title} loading="lazy" />
                   </div>
                   <div className="freefire-card-bottom">
@@ -1414,170 +1468,6 @@ const page: Page =
           </div>
         </div>
       </footer>
-      {isCartOpen && (
-        <div className="cart-overlay" onClick={() => setIsCartOpen(false)}>
-          <aside
-            className="cart-panel"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="cart-header">
-              <div>
-                <p className="cart-kicker">Votre selection</p>
-                <h3>Panier</h3>
-              </div>
-              <button
-                type="button"
-                className="link-btn"
-                onClick={() => setIsCartOpen(false)}
-              >
-                Fermer
-              </button>
-            </div>
-            <div className="cart-body">
-              {cart.length === 0 ? (
-                <div className="cart-empty-state">
-                  <div className="cart-empty-icon" aria-hidden>
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        d="M6 6h14l-2 9H8L6 6z"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
-                      <path
-                        d="M9 19h0.01M17 19h0.01"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </div>
-                  <p>Votre panier est vide</p>
-                  <button
-                    className="btn btn-primary"
-                    type="button"
-                    onClick={() => {
-                      setIsCartOpen(false);
-                      handleGamesLink();
-                    }}
-                  >
-                    Voir les jeux
-                  </button>
-                </div>
-              ) : (
-                <div className="cart-items">
-                  {cart.map((item) => (
-                    <div className="cart-item" key={item.id}>
-                      <div className="cart-item-media">
-                        <img
-                          src={item.image ?? "/image.png"}
-                          alt={item.name}
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className="cart-item-info">
-                        <div>
-                          <strong>{item.name}</strong>
-                          <span>{item.game ?? "Nexy Shop"}</span>
-                        </div>
-                        <div className="cart-item-price">{formatPrice(item.price)}</div>
-                        <div className="cart-item-actions">
-                          <div className="cart-qty">
-                            <button
-                              type="button"
-                              className="cart-qty-btn"
-                              onClick={() => updateCartQuantity(item.id, -1)}
-                              aria-label="Retirer une quantite"
-                            >
-                              -
-                            </button>
-                            <span className="cart-qty-value">{item.quantity}</span>
-                            <button
-                              type="button"
-                              className="cart-qty-btn"
-                              onClick={() => updateCartQuantity(item.id, 1)}
-                              aria-label="Ajouter une quantite"
-                            >
-                              +
-                            </button>
-                          </div>
-                          <button
-                            type="button"
-                            className="cart-remove"
-                            onClick={() => removeFromCart(item.id)}
-                            aria-label="Supprimer l'article"
-                          >
-                            <svg viewBox="0 0 24 24" aria-hidden>
-                              <path
-                                d="M4 7h16"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              />
-                              <path
-                                d="M9 7V5h6v2"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              />
-                              <path
-                                d="M7 7l1 12h8l1-12"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="cart-footer">
-              <div className="cart-summary">
-                <div>
-                  <span>Sous-total</span>
-                  <strong>{formatPrice(cartTotal)}</strong>
-                </div>
-                <div>
-                  <span>Frais</span>
-                  <strong>{formatPrice(0)}</strong>
-                </div>
-                <div className="cart-total">
-                  <span>Total</span>
-                  <strong>{formatPrice(cartTotal)}</strong>
-                </div>
-              </div>
-              <button className="btn btn-primary cart-checkout" type="button" onClick={handleCheckout}>
-                Payer maintenant
-              </button>
-            </div>
-          </aside>
-        </div>
-      )}
-      <button
-        className="floating-shop-btn"
-        type="button"
-        aria-label="Ouvrir la boutique"
-        onClick={handleGamesLink}
-      >
-        <svg viewBox="0 0 24 24" aria-hidden>
-          <path
-            d="M3 7h18l-2 12H5L3 7z"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-          <path
-            d="M7 7l1-3h8l1 3"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
-      </button>
       </div>
     </div>
   );
