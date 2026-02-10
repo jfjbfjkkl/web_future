@@ -765,6 +765,14 @@ button {
   cursor: pointer;
 }
 
+/* Taille fixe pour les icones panier (si image PNG/SVG) */
+.header-cart-icon img,
+.cart-icon img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 .cart-btn:hover {
   transform: translateY(-1px) scale(1.03);
   color: #57d4ff;
@@ -2026,6 +2034,13 @@ button {
   gap: 18px;
 }
 
+/* Grille cadeau demandee (base desktop) */
+.gift-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
 .gift-card-premium {
   position: relative;
   background:
@@ -2331,16 +2346,20 @@ button {
     transition: transform 0.25s ease, box-shadow 0.25s ease;
   }
 
-  /* MOBILE - 1 carte cadeau par ligne */
-  .gift-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-    padding: 6px 0 10px;
+  /* MOBILE - scroll horizontal pour cartes cadeaux */
+  .gift-row {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    padding: 6px 12px 16px;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
   }
 
-  .gift-card-premium {
-    width: 100%;
+  .gift-card {
+    min-width: 180px;
+    scroll-snap-align: start;
   }
 
   /* MOBILE - scroll horizontal pour les jeux */
@@ -2454,9 +2473,9 @@ button {
     height: 130px;
   }
 
-  /* MOBILE - cartes cadeaux pleine largeur */
+  /* MOBILE - largeur geree par .gift-row */
   .gift-card-premium {
-    width: 100%;
+    width: auto;
   }
 }
 
@@ -2550,7 +2569,7 @@ button {
 
   /* MOBILE - conserve la largeur carte cadeau */
   .gift-card-premium {
-    width: 100%;
+    width: auto;
   }
 
   .btn,

@@ -1033,11 +1033,12 @@ const page: Page =
               <h2 className="section-title-gradient">Cartes Cadeaux</h2>
               <p>Offrez des credits instantanes pour toutes les plateformes.</p>
             </div>
-            <div className="gift-grid">
+            {/* Ligne cartes cadeaux (mobile: scroll horizontal via CSS) */}
+            <div className="gift-grid gift-row">
               {/* Cartes cadeaux : style carte bancaire pour un rendu premium */}
               {giftCards.map((card, index) => (
                 <article
-                  className="gift-card-premium reveal"
+                  className="gift-card-premium gift-card reveal"
                   key={card.id}
                   style={{ ["--delay" as any]: `${index * 80}ms` }}
                 >
