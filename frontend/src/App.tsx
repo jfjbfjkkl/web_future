@@ -670,7 +670,8 @@ const page: Page =
         <div className="header-inner">
           <Link className="brand" href="/" onClick={() => setIsMenuOpen(false)}>
             <span className="brand-logo" aria-hidden>
-              <img src="/hero-right.jpeg" alt="Nexy Shop" />
+              {/* LOGO SITE */}
+              <img className="site-logo" src="/hero-right.jpeg" alt="Nexy Shop" />
             </span>
             <span className="brand-text">Nexy Shop</span>
           </Link>
@@ -1105,7 +1106,8 @@ const page: Page =
             <header className="account-header">
               <div className="account-brand">
                 <span className="brand-logo" aria-hidden>
-                  <img src="/hero-right.jpeg" alt="Nexy Shop" />
+                  {/* LOGO SITE */}
+                  <img className="site-logo" src="/hero-right.jpeg" alt="Nexy Shop" />
                 </span>
                 <div>
                   <p className="account-kicker">Mon compte</p>
