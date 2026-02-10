@@ -13,6 +13,10 @@ body {
   margin: 0;
 }
 
+html {
+  scroll-behavior: smooth; /* Scroll fluide general pour desktop + mobile */
+}
+
 /* STYLE GLOBAL */
 body {
   font-family: "Poppins", "Montserrat", "Segoe UI", sans-serif;
@@ -45,6 +49,17 @@ body.cart-open {
     opacity: 1;
     transform: translateY(0);
     filter: blur(0);
+  }
+}
+
+@keyframes pageEnterMobile {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -1780,7 +1795,10 @@ button {
   overflow-y: hidden;
   padding: 10px 4px 20px 4px;
   scroll-snap-type: x mandatory;
+  scroll-padding: 0 20px; /* Garde les cartes centrées lors du snap */
+  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 
 .product-row::-webkit-scrollbar {
@@ -1930,7 +1948,9 @@ button {
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x proximity;
+  scroll-padding: 0 18px;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 
 .gift-grid::-webkit-scrollbar {
@@ -2228,7 +2248,7 @@ button {
     border-radius: 20px 20px 0 0;
     margin-top: 0;
     transform: translateY(100%);
-    animation: cartPanelUp 0.3s ease-out forwards;
+    animation: cartSlideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; /* Effet tiroir fluide */
     overflow: hidden;
   }
 
@@ -2338,6 +2358,73 @@ button {
     --intro-scale: 0.9;
   }
 
+  /* MOBILE - animations plus légères et interactions tactiles */
+  .page-transition {
+    animation: pageEnterMobile 0.3s ease-out;
+  }
+
+  .reveal {
+    transform: translateY(10px);
+    transition-duration: 0.4s;
+  }
+
+  .reveal.is-visible {
+    transform: translateY(0);
+  }
+
+  .main-content {
+    padding: 48px 16px 70px;
+    gap: 48px;
+  }
+
+  .product-row,
+  .gift-grid {
+    gap: 14px;
+    padding: 6px 6px 18px;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 14px;
+  }
+
+  .product-row > *,
+  .gift-grid > * {
+    scroll-snap-align: center;
+    flex: 0 0 78%;
+    min-width: 78%;
+  }
+
+  .btn,
+  .freefire-btn,
+  .game-card .btn {
+    min-height: 48px;
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+
+  .cart-btn {
+    width: 52px;
+    height: 52px;
+  }
+
+  .cart-panel {
+    padding: 18px 20px 26px;
+  }
+
+  .cart-panel .btn {
+    min-height: 52px;
+  }
+
+  .game-card {
+    padding: 14px;
+    gap: 10px;
+    box-shadow:
+      0 14px 32px rgba(10, 12, 22, 0.7),
+      0 0 18px rgba(87, 212, 255, 0.2);
+  }
+
+  .game-card:active {
+    transform: scale(0.985);
+  }
+
   .freefire-page {
     padding: 16px 14px 24px;
     gap: 16px;
@@ -2431,6 +2518,7 @@ button {
 }
 
 @media (hover: none) {
+  /* Modes tactiles : tap = feedback rapide, sans hover */
   .btn:hover,
   .btn-primary:hover,
   .btn-ghost:hover,
