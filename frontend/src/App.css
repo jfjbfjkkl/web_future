@@ -1825,49 +1825,55 @@ button {
   gap: 16px;
 }
 
-.popular-games-row {
-  display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  padding-bottom: 10px;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-x;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
+/* ===== NOS JEUX POPULAIRES — MOBILE FIX ===== */
+@media (max-width: 768px) {
+  .popular-games-row {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 10px 0;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
 
-.popular-games-row::-webkit-scrollbar {
-  display: none;
-}
+  .popular-games-row::-webkit-scrollbar {
+    display: none;
+  }
 
-.game-tile {
-  min-width: 75%;
-  border-radius: 16px;
-  overflow: hidden;
-  cursor: pointer;
-  scroll-snap-align: start;
-  background: #111111;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  transition: transform 0.2s ease;
-}
-
-.game-tile:hover {
-  transform: scale(1.03);
-}
-
-.game-tile img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  display: block;
-}
-
-@media (min-width: 768px) {
+  /* CARTE JEU - format carre pour mobile */
   .game-tile {
-    min-width: 240px;
-    max-width: 240px;
+    flex: 0 0 auto;
+    width: 140px;
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #111111;
+    scroll-snap-align: start;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  }
+
+  /* IMAGE DANS CARTE - remplit le carre */
+  .game-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+/* ===== VERSION PC RESTE INCHANGEE ===== */
+@media (min-width: 769px) {
+  .popular-games-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    overflow: visible;
+  }
+
+  .game-tile {
+    width: 100%;
   }
 }
 
