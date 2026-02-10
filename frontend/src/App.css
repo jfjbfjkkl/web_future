@@ -2129,6 +2129,18 @@ button {
   }
 }
 
+/* Animation douce pour l'apparition des cartes mobiles */
+@keyframes mobileCardFloat {
+  from {
+    opacity: 0;
+    transform: translate3d(12px, 12px, 0) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
   .header-inner {
@@ -2209,7 +2221,56 @@ button {
     padding: 6px 2px 14px;
   }
 
-  .game-grid,
+  /* MOBILE - slider dedicated to "Nos jeux populaires" */
+  .game-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 14px;
+    margin: 0 -12px;
+    padding: 6px 12px 18px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scroll-padding: 0 12px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .game-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* MOBILE - compact cards so more content fits per swipe */
+  .game-card {
+    flex: 0 0 clamp(68vw, 72vw, 320px);
+    min-height: 240px;
+    padding: 14px;
+    border-radius: 18px;
+    scroll-snap-align: start;
+    animation: mobileCardFloat 0.55s ease both;
+  }
+
+  .game-card.popular::after {
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+
+  .game-art {
+    height: 120px;
+    border-radius: 14px;
+  }
+
+  .game-info h3 {
+    font-size: 16px;
+  }
+
+  .game-info .btn {
+    width: 100%;
+  }
+
   .features-grid {
     grid-template-columns: 1fr;
   }
@@ -2218,10 +2279,6 @@ button {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-  }
-
-  .game-info .btn {
-    width: 100%;
   }
 
   .freefire-card-bottom {
