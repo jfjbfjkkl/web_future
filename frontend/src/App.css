@@ -750,28 +750,24 @@ button {
   transform: translateY(0);
 }
 
-/* BOUTON PANIER */
+/* BOUTON PANIER - icône seule pour un look premium */
 .cart-btn {
-  position: relative; /* Sert de repère pour positionner le badge */
-  overflow: visible; /* Laisse le badge dépasser du bouton */
+  position: relative; /* Support du badge */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   padding: 0;
-  background: rgba(20, 24, 40, 0.9);
-  border: 1px solid rgba(124, 92, 255, 0.35);
+  background: transparent;
+  border: none;
   color: #ffffff;
-  box-shadow: 0 12px 26px rgba(7, 10, 18, 0.55);
+  cursor: pointer;
 }
 
 .cart-btn:hover {
-  transform: translateY(-1px) scale(1.05);
-  box-shadow:
-    0 16px 30px rgba(7, 10, 18, 0.6),
-    0 0 18px rgba(124, 92, 255, 0.45);
-  filter: brightness(1.05);
+  transform: translateY(-1px) scale(1.03);
+  color: #57d4ff;
 }
 
 .cart-btn.bump {
@@ -779,8 +775,8 @@ button {
 }
 
 .cart-icon {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -792,10 +788,9 @@ button {
 }
 
 .cart-count {
-  position: absolute; /* Badge détaché du flux */
-  top: 0;
-  right: 0;
-  transform: translate(40%, -40%); /* Le fait déborder en haut à droite */
+  position: absolute;
+  top: -6px;
+  right: -10px;
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -882,42 +877,64 @@ button {
   transform: scale(0.96);
 }
 
-/* PANIER */
+/* PANIER GLOBAL : overlay sombre + modale centrée */
 .cart-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(7, 10, 20, 0.65);
+  background: rgba(4, 6, 14, 0.78);
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: center;
   padding: 24px;
-  z-index: 50;
-  animation: cartOverlayFade 0.3s ease-out;
+  z-index: 120;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: cartOverlayFade 0.25s ease-out;
 }
 
 .cart-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 420px;
-  height: 100vh;
-  background: rgba(10, 14, 26, 0.98);
-  border-radius: 20px 0 0 20px;
-  padding: 22px;
+  position: relative;
+  width: min(520px, 92vw);
+  max-height: min(90vh, 640px);
+  background: rgba(10, 14, 26, 0.96);
+  border-radius: 26px;
+  padding: 24px;
   border: 1px solid rgba(124, 92, 255, 0.35);
   box-shadow:
-    0 28px 60px rgba(0, 0, 0, 0.65),
+    0 36px 80px rgba(0, 0, 0, 0.65),
     0 0 24px rgba(124, 92, 255, 0.25);
   display: flex;
   flex-direction: column;
   gap: 16px;
-  transform: translateX(100%);
-  animation: cartPanelIn 0.3s ease-out forwards;
+  animation: cartModalIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-origin: center;
+  overflow: hidden;
 }
 
 .cart-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.cart-close-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(124, 92, 255, 0.35);
+  background: rgba(12, 16, 30, 0.9);
+  color: #ffffff;
+  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cart-close-btn:hover {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 0 14px rgba(124, 92, 255, 0.4);
 }
 
 .cart-kicker {
@@ -1199,14 +1216,14 @@ button {
   }
 }
 
-@keyframes cartPanelIn {
+@keyframes cartModalIn {
   from {
     opacity: 0;
-    transform: translateX(100%);
+    transform: scale(0.94) translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: scale(1) translateY(0);
   }
 }
 
@@ -1818,25 +1835,25 @@ button {
   gap: 24px;
 }
 
-/* CARTE JEU - Conteur principal d'un jeu */
+/* CARTE JEU - Conteur principal d'un jeu (compact par défaut) */
 .game-card {
   background: linear-gradient(180deg, #1a1f2b, #0f131a);
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 14px;
   box-shadow: 0 8px 24px rgba(90, 120, 255, 0.2);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   position: relative;
   /* Transitions fluides pour l'hover */
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   will-change: transform, box-shadow, background;
   border: 1px solid rgba(124, 92, 255, 0.15);
 }
 
 /* Animation au survol - Élève la carte */
 .game-card:hover {
-  transform: translateY(-8px) scale(1.02);
+  transform: translateY(-4px) scale(1.01);
   box-shadow: 
     0 16px 40px rgba(124, 92, 255, 0.35),
     0 0 30px rgba(87, 212, 255, 0.2);
@@ -1862,7 +1879,7 @@ button {
 
 .game-art {
   width: 100%;
-  height: 140px;
+  height: 130px;
   border-radius: 16px;
   margin-bottom: 12px;
   display: flex;
@@ -2133,7 +2150,7 @@ button {
 @keyframes mobileCardFloat {
   from {
     opacity: 0;
-    transform: translate3d(12px, 12px, 0) scale(0.95);
+    transform: translate3d(6px, 8px, 0) scale(0.98);
   }
   to {
     opacity: 1;
@@ -2230,7 +2247,7 @@ button {
     padding: 6px 12px 18px;
     overflow-x: auto;
     overflow-y: hidden;
-    scroll-snap-type: x proximity;
+    scroll-snap-type: x mandatory;
     scroll-padding: 0 12px;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
@@ -2295,30 +2312,24 @@ button {
   }
 
   .cart-panel {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    top: auto;
-    width: 100%;
-    height: 85vh;
-    border-radius: 20px 20px 0 0;
-    margin-top: 0;
-    transform: translateY(100%);
-    animation: cartSlideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; /* Effet tiroir fluide */
-    overflow: hidden;
+    width: 96vw;
+    max-height: 92vh;
+    border-radius: 28px;
+    padding: 20px;
   }
 
   .cart-footer {
-    position: sticky;
-    bottom: 0;
-    background: rgba(12, 16, 30, 0.98);
-    padding-bottom: 8px;
+    position: static;
+    padding-bottom: 4px;
   }
 
   .cart-overlay {
-    padding: 0;
-    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .cart-panel .btn,
+  .cart-panel .cart-checkout {
+    width: 100%;
   }
 }
 
@@ -2458,12 +2469,12 @@ button {
   }
 
   .cart-btn {
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
   }
 
   .cart-panel {
-    padding: 18px 20px 26px;
+    padding: 18px 20px 24px;
   }
 
   .cart-panel .btn {
@@ -2646,16 +2657,6 @@ button {
   }
   to {
     transform: translateX(0);
-  }
-}
-
-/* ANIMATION PANIER MOBILE */
-@keyframes cartSlideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
   }
 }
 

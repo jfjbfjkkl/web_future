@@ -699,13 +699,31 @@ const page: Page =
     setIsMenuOpen(false);
   };
 
-  const openCartWithScroll = () => {
-    if (typeof window === "undefined") return;
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    window.setTimeout(() => {
-      setIsCartOpen(true);
-    }, 400);
-  };
+  // --- PANIER GLOBAL : ouverture/fermeture sans scroll auto ---
+  const openCart = () => setIsCartOpen(true);
+  const closeCart = () => setIsCartOpen(false);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const body = document.body;
+    if (isCartOpen) {
+      body.classList.add("cart-open");
+    } else {
+      body.classList.remove("cart-open");
+    }
+    return () => body.classList.remove("cart-open");
+  }, [isCartOpen]);
+
+  useEffect(() => {
+    if (!isCartOpen || typeof document === "undefined") return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsCartOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isCartOpen]);
 
   useEffect(() => {
     const elements = Array.from(document.querySelectorAll(".reveal"));
@@ -771,7 +789,7 @@ const page: Page =
             <button
               className={`btn cart-btn ${cartBump ? "bump" : ""}`}
               type="button"
-              onClick={openCartWithScroll}
+              onClick={openCart}
               ref={cartButtonRef}
               aria-label="Ouvrir le panier"
             >
@@ -893,7 +911,7 @@ const page: Page =
               className="mobile-menu-link"
               type="button"
               onClick={() => {
-                openCartWithScroll();
+                openCart();
                 setIsMenuOpen(false);
               }}
             >
@@ -1221,7 +1239,7 @@ const page: Page =
                 </div>
               </div>
               <div className="account-actions">
-                <button className="btn btn-ghost" type="button" onClick={openCartWithScroll}>
+                <button className="btn btn-ghost" type="button" onClick={openCart}>
                   Voir panier
                 </button>
                 <button className="btn btn-primary" type="button" onClick={handleLogout}>
@@ -1454,22 +1472,27 @@ const page: Page =
         </div>
       </footer>
       {isCartOpen && (
-        <div className="cart-overlay" onClick={() => setIsCartOpen(false)}>
+        <div className="cart-overlay" role="presentation" onClick={closeCart}>
+          {/* Fenetre modale du panier : centrée + scroll interne */}
           <aside
             className="cart-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cartTitle"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="cart-header">
               <div>
                 <p className="cart-kicker">Votre selection</p>
-                <h3>Panier</h3>
+                <h3 id="cartTitle">Panier</h3>
               </div>
               <button
                 type="button"
-                className="link-btn"
-                onClick={() => setIsCartOpen(false)}
+                className="cart-close-btn"
+                aria-label="Fermer le panier"
+                onClick={closeCart}
               >
-                Fermer
+                <span aria-hidden>×</span>
               </button>
             </div>
             <div className="cart-body">
@@ -1496,7 +1519,7 @@ const page: Page =
                     className="btn btn-primary"
                     type="button"
                     onClick={() => {
-                      setIsCartOpen(false);
+                      closeCart();
                       handleGamesLink();
                     }}
                   >
