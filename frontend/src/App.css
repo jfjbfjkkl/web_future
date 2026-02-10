@@ -1843,10 +1843,10 @@ button {
     display: none;
   }
 
-  /* CARTE JEU - format carre pour mobile */
+  /* CARTE JEU - format carre pour mobile (plus grand) */
   .game-tile {
     flex: 0 0 auto;
-    width: 140px;
+    width: 180px; /* agrandi */
     aspect-ratio: 1 / 1;
     border-radius: 16px;
     overflow: hidden;
