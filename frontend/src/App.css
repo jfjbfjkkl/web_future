@@ -1818,6 +1818,59 @@ button {
   gap: 24px;
 }
 
+/* ===== NOS JEUX POPULAIRES — SCROLL HORIZONTAL ===== */
+.popular-games {
+  margin-top: 40px;
+  display: grid;
+  gap: 16px;
+}
+
+.popular-games-row {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 10px;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.popular-games-row::-webkit-scrollbar {
+  display: none;
+}
+
+.game-tile {
+  min-width: 75%;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  scroll-snap-align: start;
+  background: #111111;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease;
+}
+
+.game-tile:hover {
+  transform: scale(1.03);
+}
+
+.game-tile img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .game-tile {
+    min-width: 240px;
+    max-width: 240px;
+  }
+}
+
 /* CARTE JEU - Conteur principal d'un jeu */
 .game-card {
   background: linear-gradient(180deg, #1a1f2b, #0f131a);

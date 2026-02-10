@@ -64,13 +64,6 @@ function Link(
   );
 }
 
-type GameCard = {
-  id: string;
-  name: string;
-  theme: string;
-  price: number;
-};
-
 type GiftCardBadge = "Populaire" | "Promo" | "Nouveau";
 
 type GiftCard = {
@@ -82,13 +75,6 @@ type GiftCard = {
   description: string;
   badge?: GiftCardBadge;
 };
-
-const games: GameCard[] = [
-  { id: "free-fire", name: "Free Fire", theme: "ff", price: 7000 },
-  { id: "pubg", name: "PUBG Mobile", theme: "pubg", price: 6500 },
-  { id: "fortnite", name: "Fortnite", theme: "fortnite", price: 7200 },
-  { id: "codm", name: "Call of Duty Mobile", theme: "codm", price: 6800 },
-];
 
 const giftCards: GiftCard[] = [
   {
@@ -941,57 +927,32 @@ const page: Page =
         )}
 
         {page === "home" && (
-          <section id="games" className="section reveal">
-            <div className="section-head">
-              <h2>Nos jeux populaires</h2>
-              <p>Rechargez vos jeux favoris avec des credits officiels.</p>
-            </div>
-            <div className="game-grid">
-              {games.map((game) => (
-                <article className={`game-card game-${game.theme} ${game.id === "free-fire" || game.id === "pubg" ? "popular" : ""} reveal`} key={game.id}>
-                  <div className="game-art" aria-hidden>
-                    {game.id === "free-fire" ? (
-                      <img src="/image copy 4.png" alt={game.name} loading="lazy" />
-                    ) : (
-                      <span>{game.name}</span>
-                    )}
-                  </div>
-                  <div className="game-info">
-                    <h3>{game.name}</h3>
-                    {/* BOUTON VERS LIBRE-FEU */}
-                    {game.id === "free-fire" && (
-                      <button
-                        className="btn btn-primary"
-                        type="button"
-                        onClick={() => navigate("free-fire")}
-                      >
-                        Explorer
-                      </button>
-                    )}
-                    {/* BOUTON VERS PUBG */}
-                    {game.id === "pubg" && (
-                      <button
-                        className="btn btn-primary"
-                        type="button"
-                        onClick={() => navigate("pubg")}
-                      >
-                        Explorer
-                      </button>
-                    )}
-                    {/* AUTRES JEUX - DÉSACTIVÉ */}
-                    {game.id !== "free-fire" && game.id !== "pubg" && (
-                      <button
-                        className="btn btn-primary"
-                        type="button"
-                        disabled
-                        title="Prochainement disponible"
-                      >
-                        Prochainement
-                      </button>
-                    )}
-                  </div>
-                </article>
-              ))}
+          <section id="games" className="popular-games reveal">
+            {/* ===== SECTION NOS JEUX POPULAIRES ===== */}
+            <h2>Nos jeux populaires</h2>
+
+            {/* ROW SCROLL HORIZONTAL */}
+            <div className="popular-games-row">
+              {/* CARTE IMAGE CLIQUABLE */}
+              <div className="game-tile" onClick={() => navigate("free-fire")}>
+                <img src="/image copy.png" alt="" loading="lazy" />
+              </div>
+
+              <div className="game-tile" onClick={() => navigate("pubg")}>
+                <img src="/image copy 17.png" alt="" loading="lazy" />
+              </div>
+
+              <div className="game-tile" onClick={() => navigate("home")}>
+                <img src="/image copy 16.png" alt="" loading="lazy" />
+              </div>
+
+              <div className="game-tile" onClick={() => navigate("home")}>
+                <img src="/image copy 15.png" alt="" loading="lazy" />
+              </div>
+
+              <div className="game-tile" onClick={() => navigate("home")}>
+                <img src="/image copy 14.png" alt="" loading="lazy" />
+              </div>
             </div>
           </section>
         )}
