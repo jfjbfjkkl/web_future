@@ -989,6 +989,78 @@ const page: Page =
             <h2>Nos jeux populaires</h2>
             <p>Rechargez vos jeux favoris avec des credits officiels.</p>
 
+            {/* MOBILE: sous-sections par jeu avec scroll horizontal */}
+            <section className="popular-mobile" aria-label="Jeux populaires mobile">
+              {[
+                {
+                  id: "free-fire",
+                  title: "Free Fire",
+                  image: "/image copy 4.png",
+                  cards: [
+                    { id: "free-fire-main", title: "Free Fire", badge: "Populaire", route: "free-fire" },
+                    { id: "free-fire-elite", title: "Free Fire Elite", badge: "", route: "" },
+                  ],
+                },
+                {
+                  id: "pubg",
+                  title: "PUBG Mobile",
+                  image: "/image copy 13.png",
+                  cards: [
+                    { id: "pubg-main", title: "PUBG Mobile", badge: "Populaire", route: "pubg" },
+                    { id: "pubg-pass", title: "PUBG Pass", badge: "", route: "" },
+                  ],
+                },
+                {
+                  id: "fortnite",
+                  title: "Fortnite",
+                  image: "/image copy 10.png",
+                  cards: [
+                    { id: "fortnite-main", title: "Fortnite", badge: "", route: "" },
+                    { id: "fortnite-crew", title: "Fortnite Crew", badge: "", route: "" },
+                  ],
+                },
+                {
+                  id: "codm",
+                  title: "Call of Duty Mobile",
+                  image: "/image copy 12.png",
+                  cards: [
+                    { id: "codm-main", title: "COD Mobile", badge: "", route: "" },
+                    { id: "codm-battle", title: "Battle Pass", badge: "", route: "" },
+                  ],
+                },
+              ].map((group) => (
+                <div className="game-group" key={group.id}>
+                  {/* Titre du jeu */}
+                  <h3>{group.title}</h3>
+
+                  {/* Ligne scrollable */}
+                  <div className="game-horizontal-row">
+                    {group.cards.map((card) => (
+                      <div className="mobile-game-card" key={card.id}>
+                        <img src={group.image} alt={card.title} loading="lazy" />
+                        <div className="card-body">
+                          {/* Badge optionnel */}
+                          {card.badge && <span className="badge">{card.badge}</span>}
+                          <h4>{card.title}</h4>
+
+                          {/* Bouton: actif si route, sinon desactive */}
+                          <button
+                            className="btn-explorer"
+                            type="button"
+                            disabled={!card.route}
+                            title={card.route ? "Explorer" : "Prochainement"}
+                            onClick={() => card.route && navigate(card.route)}
+                          >
+                            {card.route ? "Explorer" : "Prochainement"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </section>
+
             <div className="games-row">
               {/* CARTE JEU */}
               {games.map((game) => {
