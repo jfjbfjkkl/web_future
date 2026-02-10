@@ -145,6 +145,30 @@ type CartItem = {
   game?: string;
 };
 
+// Petit helper pour afficher les infos critiques par jeu dans le panier
+const getCartItemHints = (game?: string) => {
+  if (!game) return null;
+  const normalized = game.toLowerCase();
+  if (normalized.includes("free fire")) {
+    return { uid: "UID Free Fire requis", region: "Serveur Global" };
+  }
+  if (normalized.includes("pubg")) {
+    return { uid: "ID joueur PUBG requis", region: "Serveur MENA" };
+  }
+  if (normalized.includes("fortnite")) {
+    return { uid: "Epic ID requis" };
+  }
+  if (normalized.includes("call of duty")) {
+    return { uid: "UID CODM requis", region: "Serveur Activision" };
+  }
+  return { uid: `${game} : UID requis` };
+};
+
+const formatCartCountLabel = (count: number) => {
+  if (count <= 0) return "0 article";
+  return `${count} ${count > 1 ? "articles" : "article"}`;
+};
+
 type FreeFirePack = {
   id: string;
   title: string;
@@ -462,6 +486,7 @@ const page: Page =
     (total, item) => total + item.price * item.quantity,
     0
   );
+  const cartCountLabel = formatCartCountLabel(cartCount);
   const accountInitial = authUser?.name?.trim()?.charAt(0).toUpperCase() ?? "N";
 
   const triggerCartPulse = () => {
@@ -1473,7 +1498,7 @@ const page: Page =
       </footer>
       {isCartOpen && (
         <div className="cart-overlay" role="presentation" onClick={closeCart}>
-          {/* Fenetre modale du panier : centrée + scroll interne */}
+          {/* Panier global : bottom sheet mobile + modale desktop */}
           <aside
             className="cart-panel"
             role="dialog"
@@ -1486,14 +1511,19 @@ const page: Page =
                 <p className="cart-kicker">Votre selection</p>
                 <h3 id="cartTitle">Panier</h3>
               </div>
-              <button
-                type="button"
-                className="cart-close-btn"
-                aria-label="Fermer le panier"
-                onClick={closeCart}
-              >
-                <span aria-hidden>×</span>
-              </button>
+              <div className="cart-header-actions">
+                <p className="cart-count-chip" aria-live="polite">
+                  {cartCountLabel}
+                </p>
+                <button
+                  type="button"
+                  className="cart-close-btn"
+                  aria-label="Fermer le panier"
+                  onClick={closeCart}
+                >
+                  <span aria-hidden>×</span>
+                </button>
+              </div>
             </div>
             <div className="cart-body">
               {cart.length === 0 ? (
@@ -1528,8 +1558,10 @@ const page: Page =
                 </div>
               ) : (
                 <div className="cart-items">
-                  {cart.map((item) => (
-                    <div className="cart-item" key={item.id}>
+                  {cart.map((item) => {
+                    const hints = getCartItemHints(item.game);
+                    return (
+                      <div className="cart-item" key={item.id}>
                       <div className="cart-item-media">
                         <img
                           src={item.image ?? "/image.png"}
@@ -1542,6 +1574,12 @@ const page: Page =
                           <strong>{item.name}</strong>
                           <span>{item.game ?? "Nexy Shop"}</span>
                         </div>
+                        {hints && (
+                          <div className="cart-item-hints">
+                            <span>{hints.uid}</span>
+                            {hints.region && <span>{hints.region}</span>}
+                          </div>
+                        )}
                         <div className="cart-item-price">{formatPrice(item.price)}</div>
                         <div className="cart-item-actions">
                           <div className="cart-qty">
@@ -1593,7 +1631,8 @@ const page: Page =
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1612,9 +1651,21 @@ const page: Page =
                   <strong>{formatPrice(cartTotal)}</strong>
                 </div>
               </div>
-              <button className="btn btn-primary cart-checkout" type="button" onClick={handleCheckout}>
-                Payer maintenant
-              </button>
+              <div className="cart-footer-actions">
+                <button
+                  className="btn cart-continue"
+                  type="button"
+                  onClick={() => {
+                    closeCart();
+                    handleGamesLink();
+                  }}
+                >
+                  Continuer mes achats
+                </button>
+                <button className="btn btn-primary cart-checkout" type="button" onClick={handleCheckout}>
+                  Passer au paiement
+                </button>
+              </div>
             </div>
           </aside>
         </div>

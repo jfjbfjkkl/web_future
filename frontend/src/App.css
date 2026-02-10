@@ -915,6 +915,13 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+}
+
+.cart-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .cart-close-btn {
@@ -950,10 +957,20 @@ button {
   font-size: 20px;
 }
 
+.cart-count-chip {
+  margin: 0;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(87, 212, 255, 0.12);
+  border: 1px solid rgba(87, 212, 255, 0.35);
+  color: #c7f3ff;
+}
+
 .cart-body {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1009,6 +1026,21 @@ button {
 .cart-item-info {
   display: grid;
   gap: 8px;
+}
+
+.cart-item-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(87, 212, 255, 0.85);
+}
+
+.cart-item-hints span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(87, 212, 255, 0.35);
+  background: rgba(6, 16, 30, 0.8);
 }
 
 .cart-item-info strong {
@@ -1155,6 +1187,23 @@ button {
   gap: 12px;
 }
 
+.cart-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cart-continue {
+  background: rgba(255, 255, 255, 0.06);
+  color: #eaeaea;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.cart-continue:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
 .cart-summary {
   display: grid;
   gap: 8px;
@@ -1224,6 +1273,17 @@ button {
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes cartSheetIn {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
@@ -2311,20 +2371,23 @@ button {
     display: none;
   }
 
+  .cart-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
   .cart-panel {
-    width: 96vw;
-    max-height: 92vh;
-    border-radius: 28px;
-    padding: 20px;
+    width: 100%;
+    max-height: 85vh;
+    border-radius: 32px 32px 0 0;
+    padding: 20px 20px 24px;
+    animation: cartSheetIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    transform-origin: bottom center;
   }
 
   .cart-footer {
     position: static;
     padding-bottom: 4px;
-  }
-
-  .cart-overlay {
-    padding: 12px;
   }
 
   .cart-panel .btn,
