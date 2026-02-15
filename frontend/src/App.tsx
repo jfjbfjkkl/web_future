@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { AnchorHTMLAttributes, FormEvent, MouseEvent } from "react";
+import AdminApp from "./admin/AdminApp";
 import "./App.css";
 
 function usePathname() {
@@ -64,64 +65,6 @@ function Link(
   );
 }
 
-type GiftCardBadge = "Populaire" | "Promo" | "Nouveau";
-
-type GiftCard = {
-  id: string;
-  name: string;
-  priceRange: string;
-  startingPrice: number;
-  image: string;
-  description: string;
-  badge?: GiftCardBadge;
-};
-
-const giftCards: GiftCard[] = [
-  {
-    id: "google-play",
-    name: "Google Play",
-    priceRange: "5 000 - 50 000 FCFA",
-    startingPrice: 5000,
-    image: "/image copy 2.png",
-    description: "Codes officiels livrés instantanément.",
-    badge: "Populaire",
-  },
-  {
-    id: "apple",
-    name: "Apple Gift Card",
-    priceRange: "10 000 - 75 000 FCFA",
-    startingPrice: 10000,
-    image: "/image copy 5.png",
-    description: "Activez vos achats App Store et iCloud.",
-    badge: "Nouveau",
-  },
-  {
-    id: "steam",
-    name: "Steam Wallet",
-    priceRange: "5 000 - 60 000 FCFA",
-    startingPrice: 6000,
-    image: "/image copy 6.png",
-    description: "Créditez votre portefeuille Steam partout.",
-  },
-  {
-    id: "playstation",
-    name: "PlayStation Store",
-    priceRange: "10 000 - 80 000 FCFA",
-    startingPrice: 12000,
-    image: "/image copy 3.png",
-    description: "Idéal pour PS Plus, jeux et add-ons.",
-    badge: "Promo",
-  },
-  {
-    id: "xbox",
-    name: "Xbox Gift Card",
-    priceRange: "10 000 - 80 000 FCFA",
-    startingPrice: 12000,
-    image: "/image copy 4.png",
-    description: "Rechargez Xbox ou PC Game Pass en 1 clic.",
-  },
-];
-
 type CartItem = {
   id: string;
   name: string;
@@ -129,20 +72,6 @@ type CartItem = {
   quantity: number;
   image?: string;
   game?: string;
-};
-
-type FreeFirePack = {
-  id: string;
-  title: string;
-  price: number;
-};
-
-type FreeFireSub = {
-  id: string;
-  title: string;
-  price: number;
-  diamonds: number;
-  period: "week" | "month";
 };
 
 type StoredUser = {
@@ -160,6 +89,40 @@ type PurchaseEntry = {
   date: string;
 };
 
+type StoreCategory = {
+  id: number;
+  name: string;
+  slug: string;
+  image_url: string | null;
+  is_active: boolean;
+};
+
+type StoreProduct = {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  image_url: string | null;
+  base_price: number;
+  currency: string;
+  is_active: boolean;
+  category_id: number;
+  category?: {
+    id: number;
+    name: string;
+    slug: string;
+    is_active: boolean;
+  };
+};
+
+type StorefrontPayload = {
+  categories: StoreCategory[];
+  products: StoreProduct[];
+  promotions: Array<Record<string, unknown>>;
+  content: Record<string, string | null>;
+  settings?: Record<string, string | null>;
+};
+
 
 // ===== TYPES DES PAGES DU SITE =====
 type Page = "home" | "free-fire" | "pubg" | "login" | "account";
@@ -172,31 +135,6 @@ const formatDateTime = (isoDate: string) =>
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(isoDate));
-
-const freeFirePacks: FreeFirePack[] = [
-  { id: "ff-110", title: "110 Diamants", price: 800 },
-  { id: "ff-231", title: "231 Diamants", price: 1500 },
-  { id: "ff-583", title: "583 Diamants", price: 3600 },
-  { id: "ff-1188", title: "1188 Diamants", price: 7000 },
-  { id: "ff-2200", title: "2200 Diamants", price: 12700 },
-];
-
-const freeFireSubs: FreeFireSub[] = [
-  {
-    id: "ff-weekly",
-    title: "Abonnement Hebdomadaire",
-    price: 1600,
-    diamonds: 700,
-    period: "week",
-  },
-  {
-    id: "ff-monthly",
-    title: "Abonnement Mensuel",
-    price: 7000,
-    diamonds: 3500,
-    period: "month",
-  },
-];
 
 const USERS_STORAGE_KEY = "nexy_users";
 const SESSION_STORAGE_KEY = "nexy_session";
@@ -269,6 +207,10 @@ const ROUTE_MAP: Record<Page, string> = {
 const INTRO_ENABLED = true;
 const INTRO_SESSION_KEY = "nexy_intro_seen";
 const INTRO_MESSAGE = "BIENVENUE DANS\nNEXY SHOP";
+const STOREFRONT_API_BASE =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ??
+  "http://localhost:8000/api";
+const ADMIN_TOKEN_KEY = "nexy_admin_token";
 const HERO_SLIDES = [
   "/image copy 8.png",
   "/image copy 9.png",
@@ -280,6 +222,7 @@ const HERO_SLIDES = [
 function App() {
   const router = useRouter();
   const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith("/admin");
 
  // ===== DETECTION PAGE ACTIVE =====
 const page: Page =
@@ -316,6 +259,7 @@ const page: Page =
   const [introLeaving, setIntroLeaving] = useState(false);
   const [introDone, setIntroDone] = useState(!initialShouldShowIntro);
   const [heroSlideIndex, setHeroSlideIndex] = useState(0);
+  const [storefront, setStorefront] = useState<StorefrontPayload | null>(null);
 
   const [cart, setCart] = useState<CartItem[]>(() => readStoredCart());
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -334,6 +278,77 @@ const page: Page =
   const isAuthenticated = Boolean(authUser);
   const profileButtonRef = useRef<HTMLButtonElement | null>(null);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const heroSlides =
+    Object.entries(storefront?.content ?? {})
+      .filter(([key, value]) => key.startsWith("banner_") && Boolean(value))
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, value]) => String(value)) || [];
+  const settings = storefront?.settings ?? {};
+  const getSettingValue = (key: string, fallback: string) => settings[key] ?? fallback;
+  const adminButtonEnabled = getSettingValue("admin_button_enabled", "true") === "true";
+  const maintenanceEnabled = getSettingValue("maintenance_enabled", "false") === "true";
+  const maintenanceMessage = getSettingValue("maintenance_message", "Site en maintenance.");
+  const themeMode = getSettingValue("theme_mode", "dark");
+  const themePrimary = getSettingValue("theme_primary", "#7c5cff");
+  const themeSecondary = getSettingValue("theme_secondary", "#57d4ff");
+  const themeAccent = getSettingValue("theme_accent", "#ff8c3c");
+  const themeButton = getSettingValue("theme_button", "#7c5cff");
+  const themeButtonHover = getSettingValue("theme_button_hover", "#57d4ff");
+  const themeRadiusRaw = Number.parseInt(getSettingValue("theme_radius", "12"), 10);
+  const themeRadius = Number.isFinite(themeRadiusRaw) ? `${themeRadiusRaw}px` : "12px";
+  const storefrontCategories = storefront?.categories ?? [];
+  const storefrontProducts = storefront?.products ?? [];
+  const homeTitle = storefront?.content?.home_title ?? "Nos jeux populaires";
+  const freeFireProducts = storefrontProducts.filter(
+    (product) => product.category?.slug === "free-fire"
+  );
+  const freeFireSubscriptionProducts = freeFireProducts.filter((product) =>
+    product.name.toLowerCase().includes("abonnement")
+  );
+  const pubgProducts = storefrontProducts.filter(
+    (product) => product.category?.slug === "pubg"
+  );
+  const giftCardProducts = storefrontProducts.filter(
+    (product) => product.category?.slug === "cartes-cadeaux"
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const response = await fetch(`${STOREFRONT_API_BASE}/storefront`);
+        if (!response.ok) return;
+        const payload = (await response.json()) as StorefrontPayload;
+        if (!cancelled) {
+          setStorefront(payload);
+        }
+      } catch {
+        // ignore network failures
+      }
+    };
+
+    void load();
+    const interval = window.setInterval(load, 8000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const root = document.documentElement;
+    root.setAttribute("data-theme", themeMode);
+    root.style.setProperty("color-scheme", themeMode);
+    root.style.setProperty("--theme-primary", themePrimary);
+    root.style.setProperty("--theme-secondary", themeSecondary);
+    root.style.setProperty("--theme-accent", themeAccent);
+    root.style.setProperty("--theme-button", themeButton);
+    root.style.setProperty("--theme-button-hover", themeButtonHover);
+    root.style.setProperty("--theme-radius", themeRadius);
+  }, [themeMode, themePrimary, themeSecondary, themeAccent, themeButton, themeButtonHover, themeRadius]);
 
   useEffect(() => {
     if (!INTRO_ENABLED) return;
@@ -362,12 +377,13 @@ const page: Page =
   }, [showIntro]);
 
   useEffect(() => {
+    if (!heroSlides.length) return;
     const interval = window.setInterval(() => {
-      setHeroSlideIndex((current) => (current + 1) % HERO_SLIDES.length);
+      setHeroSlideIndex((current) => (current + 1) % heroSlides.length);
     }, 3000);
 
     return () => window.clearInterval(interval);
-  }, []);
+  }, [heroSlides]);
 
   useEffect(() => {
     if (!authUser) {
@@ -686,6 +702,29 @@ const page: Page =
     setIsMenuOpen(false);
   };
 
+  const handleHiddenAdminClick = async () => {
+    const code = window.prompt("Code admin :");
+    if (!code) return;
+    try {
+      const response = await fetch(`${STOREFRONT_API_BASE}/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code.trim() }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        const message = payload?.message ?? "Code admin invalide";
+        window.alert(message);
+        return;
+      }
+      const payload = (await response.json()) as { token: string };
+      localStorage.setItem(ADMIN_TOKEN_KEY, payload.token);
+      router.push("/admin/dashboard");
+    } catch {
+      window.alert("Connexion admin impossible");
+    }
+  };
+
   const openCartWithScroll = () => {
     if (typeof window === "undefined") return;
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -729,6 +768,10 @@ const page: Page =
     elements.forEach((element) => observer.observe(element));
     return () => observer.disconnect();
   }, [page]);
+
+  if (isAdminRoute) {
+    return <AdminApp pathname={pathname} onNavigate={router.push} />;
+  }
 
   return (
     <div className="main-wrapper">
@@ -920,6 +963,12 @@ const page: Page =
         </div>
       )}
 
+      {maintenanceEnabled && (
+        <div className="maintenance-banner" role="status">
+          <span>{maintenanceMessage}</span>
+        </div>
+      )}
+
       <main
         id="mainContent"
         className={`main-content ${introDone ? "" : "main-hidden"}`}
@@ -927,7 +976,7 @@ const page: Page =
         {page === "home" && (
           <section id="home" className="hero-banner reveal">
             <div className="hero-slider" aria-label="Nexy Shop banner">
-              {HERO_SLIDES.map((src, index) => (
+              {(heroSlides.length ? heroSlides : HERO_SLIDES).map((src, index) => (
                 <div
                   key={src}
                   className={`hero-slide ${index === heroSlideIndex ? "active" : ""}`}
@@ -946,30 +995,29 @@ const page: Page =
         {page === "home" && (
           <section id="games" className="popular-games reveal">
             {/* ===== SECTION NOS JEUX POPULAIRES ===== */}
-            <h2>Nos jeux populaires</h2>
+            <h2>{homeTitle}</h2>
 
             {/* ROW SCROLL HORIZONTAL */}
             <div className="popular-games-row">
-              {/* CARTE IMAGE CLIQUABLE */}
-              <div className="game-tile" onClick={() => navigate("free-fire")}>
-                <img src="/image copy.png" alt="" loading="lazy" />
-              </div>
-
-              <div className="game-tile" onClick={() => navigate("pubg")}>
-                <img src="/image copy 17.png" alt="" loading="lazy" />
-              </div>
-
-              <div className="game-tile" onClick={() => navigate("home")}>
-                <img src="/image copy 16.png" alt="" loading="lazy" />
-              </div>
-
-              <div className="game-tile" onClick={() => navigate("home")}>
-                <img src="/image copy 15.png" alt="" loading="lazy" />
-              </div>
-
-              <div className="game-tile" onClick={() => navigate("home")}>
-                <img src="/image copy 14.png" alt="" loading="lazy" />
-              </div>
+              {storefrontCategories.map((category) => (
+                <div
+                  key={category.id}
+                  className="game-tile"
+                  onClick={() => {
+                    if (category.slug === "free-fire") {
+                      navigate("free-fire");
+                      return;
+                    }
+                    if (category.slug === "pubg") {
+                      navigate("pubg");
+                      return;
+                    }
+                    navigate("home");
+                  }}
+                >
+                  <img src={category.image_url ?? "/image copy.png"} alt={category.name} loading="lazy" />
+                </div>
+              ))}
             </div>
           </section>
         )}
@@ -982,46 +1030,33 @@ const page: Page =
             </div>
             <div className="gift-grid product-row">
               {/* CARTE CADEAU = MÊME COMPOSANT PRODUIT QUE FREE FIRE/PUBG */}
-              {giftCards.map((card, index) => (
+              {giftCardProducts.map((card, index) => (
                 <article
                   className="freefire-card gift-card reveal"
                   key={card.id}
                   style={{ ["--delay" as any]: `${index * 80}ms` }}
                 >
-                  {card.badge && (
-                    <span
-                      className={`product-badge ${
-                        card.badge === "Promo"
-                          ? "product-badge-promo"
-                          : card.badge === "Nouveau"
-                            ? "product-badge-new"
-                            : "product-badge-popular"
-                      }`}
-                    >
-                      {card.badge}
-                    </span>
-                  )}
                   <div className="freefire-card-top">
                     <span className="freefire-tag">Carte cadeau</span>
                     <h3>{card.name}</h3>
                   </div>
                   <div className="freefire-image gift-card-image">
-                    <img src={card.image} alt={card.name} loading="lazy" />
+                    <img src={card.image_url ?? "/image copy 2.png"} alt={card.name} loading="lazy" />
                   </div>
                   <div className="freefire-card-bottom">
                     <div>
-                      <div className="freefire-price">{formatPrice(card.startingPrice)}</div>
-                      <p className="freefire-meta">{card.priceRange}</p>
-                      <p className="gift-card-note">{card.description}</p>
+                      <div className="freefire-price">{formatPrice(card.base_price)}</div>
+                      <p className="freefire-meta">{card.currency}</p>
+                      <p className="gift-card-note">{card.description ?? "Code officiel instantane."}</p>
                     </div>
                     <button
                       className="btn freefire-btn"
                       type="button"
                       onClick={(event) =>
                         handleBuyClick(event, {
-                          id: card.id,
+                          id: card.slug,
                           name: card.name,
-                          price: card.startingPrice,
+                          price: card.base_price,
                           game: "Carte cadeau",
                         })
                       }
@@ -1288,19 +1323,19 @@ const page: Page =
               <p>Packs officiels, livraison instantanee.</p>
             </div>
             <div className="freefire-grid freefire-packs">
-              {freeFirePacks.map((pack) => (
+              {freeFireProducts.map((pack) => (
                 <article className="freefire-card reveal" key={pack.id}>
                   <div className="freefire-card-top">
                     <span className="freefire-tag">Pack</span>
-                    <h3>{pack.title}</h3>
+                    <h3>{pack.name}</h3>
                   </div>
                   <div className="freefire-image">
                     {/* ===== IMAGE PRODUIT PACK ===== */}
-                    <img src="/image.png" alt={pack.title} loading="lazy" />
+                    <img src={pack.image_url ?? "/image.png"} alt={pack.name} loading="lazy" />
                   </div>
                   <div className="freefire-card-bottom">
                     <div>
-                      <div className="freefire-price">{formatPrice(pack.price)}</div>
+                      <div className="freefire-price">{formatPrice(pack.base_price)}</div>
                       <p className="freefire-meta">Chargement instantane</p>
                     </div>
                     <button
@@ -1308,9 +1343,9 @@ const page: Page =
                       type="button"
                       onClick={(event) =>
                         handleBuyClick(event, {
-                          id: pack.id,
-                          name: pack.title,
-                          price: pack.price,
+                          id: pack.slug,
+                          name: pack.name,
+                          price: pack.base_price,
                         })
                       }
                     >
@@ -1326,31 +1361,29 @@ const page: Page =
               <p>Bonus quotidiens avec renouvellement automatique.</p>
             </div>
             <div className="freefire-grid freefire-subs">
-              {freeFireSubs.map((sub) => (
+              {freeFireSubscriptionProducts.map((sub) => (
                 <article className="freefire-card reveal" key={sub.id}>
                   <div className="freefire-card-top">
                     <span className="freefire-tag">Abonnement</span>
-                    <h3>{sub.title}</h3>
+                    <h3>{sub.name}</h3>
                   </div>
                   <div className="freefire-image">
                     {/* ===== IMAGE PRODUIT PACK ===== */}
-                    <img src="/image.png" alt={sub.title} loading="lazy" />
+                    <img src={sub.image_url ?? "/image.png"} alt={sub.name} loading="lazy" />
                   </div>
                   <div className="freefire-card-bottom">
                     <div>
-                      <div className="freefire-price">{formatPrice(sub.price)}</div>
-                      <p className="freefire-meta">
-                        {sub.diamonds} diamants / {sub.period === "week" ? "semaine" : "mois"}
-                      </p>
+                      <div className="freefire-price">{formatPrice(sub.base_price)}</div>
+                      <p className="freefire-meta">Abonnement officiel</p>
                     </div>
                     <button
                       className="btn freefire-btn"
                       type="button"
                       onClick={(event) =>
                         handleBuyClick(event, {
-                          id: sub.id,
-                          name: sub.title,
-                          price: sub.price,
+                          id: sub.slug,
+                          name: sub.name,
+                          price: sub.base_price,
                         })
                       }
                     >
@@ -1379,23 +1412,18 @@ const page: Page =
               <p>Packs officiels, livraison instantanee.</p>
             </div>
             <div className="freefire-grid freefire-packs">
-              {[
-                { id: "pubg-60", title: "60 UC", price: 800 },
-                { id: "pubg-325", title: "325 UC", price: 3600 },
-                { id: "pubg-660", title: "660 UC", price: 7000 },
-                { id: "pubg-1800", title: "1800 UC", price: 18000 },
-              ].map((pack) => (
+              {pubgProducts.map((pack) => (
                 <article className="freefire-card reveal" key={pack.id}>
                   <div className="freefire-card-top">
                     <span className="freefire-tag">Pack</span>
-                    <h3>{pack.title}</h3>
+                    <h3>{pack.name}</h3>
                   </div>
                   <div className="freefire-image">
-                    <img src="/image copy 13.png" alt={pack.title} loading="lazy" />
+                    <img src={pack.image_url ?? "/image copy 13.png"} alt={pack.name} loading="lazy" />
                   </div>
                   <div className="freefire-card-bottom">
                     <div>
-                      <div className="freefire-price">{formatPrice(pack.price)}</div>
+                      <div className="freefire-price">{formatPrice(pack.base_price)}</div>
                       <p className="freefire-meta">Chargement instantane</p>
                     </div>
                     <button
@@ -1403,9 +1431,9 @@ const page: Page =
                       type="button"
                       onClick={(event) =>
                         handleBuyClick(event, {
-                          id: pack.id,
-                          name: pack.title,
-                          price: pack.price,
+                          id: pack.slug,
+                          name: pack.name,
+                          price: pack.base_price,
                           game: "PUBG Mobile",
                         })
                       }
@@ -1425,13 +1453,25 @@ const page: Page =
           <div className="footer-links">
             <a href="#">Mentions legales</a>
             <a href="#">Conditions</a>
-            <a href="#">Contact</a>
           </div>
           <div className="footer-payments" aria-hidden>
             <span>Visa</span>
             <span>Mastercard</span>
             <span>PayPal</span>
           </div>
+        </div>
+        <div className="footer-bottom">
+          <span>(c) 2026 Nexy Shop. Tous droits reserves </span>
+          {adminButtonEnabled && (
+            <button
+              className="footer-hidden-link"
+              type="button"
+              aria-label="Contact"
+              onClick={handleHiddenAdminClick}
+            >
+              .
+            </button>
+          )}
         </div>
       </footer>
       {isCartOpen && (
